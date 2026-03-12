@@ -118,7 +118,7 @@ def fetch_bookmarks(config):
         try:
             # ブックマークページへ直接移動（ログイン不要）
             print("ブックマークページに移動中...")
-            page.goto('https://x.com/i/bookmarks', wait_until='networkidle', timeout=30000)
+            page.goto('https://x.com/i/bookmarks', wait_until='domcontentloaded', timeout=60000)
             time.sleep(3)
 
             # ログインできているか確認
@@ -129,7 +129,7 @@ def fetch_bookmarks(config):
                 sys.exit(1)
 
             print("ログイン状態を確認しました。ブックマークを取得中...")
-            page.goto('https://x.com/i/bookmarks', wait_until='networkidle', timeout=30000)
+            page.goto('https://x.com/i/bookmarks', wait_until='domcontentloaded', timeout=60000)
             time.sleep(3)
 
             # スクロールしながらツイートを収集
