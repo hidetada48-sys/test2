@@ -15,11 +15,11 @@ from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeo
 # ===== 設定読み込み =====
 
 def get_config_dir():
-    """OS判定で設定ディレクトリを返す"""
+    """設定ディレクトリを返す（スクリプトの親ディレクトリ = リポジトリルート）"""
     if os.name == 'nt':  # Windows
         return Path(os.environ['USERPROFILE']) / '.x-bookmark-sync'
-    else:  # Linux/Mac
-        return Path.home() / '.x-bookmark-sync'
+    else:  # Linux/Mac: scriptsの親がリポジトリルート
+        return Path(__file__).parent.parent
 
 
 def load_config():
@@ -132,12 +132,19 @@ def fetch_bookmarks(config):
             page.goto('https://x.com/i/bookmarks', wait_until='domcontentloaded', timeout=60000)
             time.sleep(3)
 
+            # 取得対象の期間（1ヶ月前まで）
+            from datetime import timezone, timedelta
+            cutoff_date = datetime.now(timezone.utc) - timedelta(days=30)
+
             # スクロールしながらツイートを収集
             prev_count = 0
             scroll_attempts = 0
-            max_scrolls = 20  # 最大スクロール回数（多すぎると時間がかかる）
+            max_scrolls = 20  # 最大スクロール回数
+            reached_cutoff = False  # 期間外に達したフラグ
 
-            while scroll_attempts < max_scrolls:
+            max_bookmarks = 25  # 3月10日のツイートが範囲内に入るよう拡大
+
+            while scroll_attempts < max_scrolls and not reached_cutoff and len(bookmarks) < max_bookmarks:
                 # 現在表示されているツイートを取得
                 tweets = page.locator('[data-testid="tweet"]').all()
                 current_count = len(tweets)
@@ -168,30 +175,29 @@ def fetch_bookmarks(config):
                         except Exception:
                             tweet_username = 'unknown'
 
-                        # ツイート本文取得
-                        try:
-                            text_elem = tweet_elem.locator('[data-testid="tweetText"]').first
-                            tweet_text = text_elem.inner_text(timeout=2000)
-                        except Exception:
-                            tweet_text = ''
-
-                        # 投稿日時取得
+                        # 投稿日時取得（本文はフェーズ2で詳細ページから取得）
                         try:
                             time_elem = tweet_elem.locator('time').first
-                            tweet_date = time_elem.get_attribute('datetime', timeout=2000) or ''
-                            # ISO形式を読みやすい形式に変換
-                            if tweet_date:
-                                dt = datetime.fromisoformat(tweet_date.replace('Z', '+00:00'))
+                            tweet_date_raw = time_elem.get_attribute('datetime', timeout=2000) or ''
+                            if tweet_date_raw:
+                                dt = datetime.fromisoformat(tweet_date_raw.replace('Z', '+00:00'))
+                                # 1ヶ月より古ければ打ち切り
+                                if dt < cutoff_date:
+                                    reached_cutoff = True
+                                    break
                                 tweet_date = dt.strftime('%Y-%m-%d %H:%M:%S')
+                            else:
+                                tweet_date = ''
                         except Exception:
                             tweet_date = ''
 
                         tweet_url = f"https://x.com/{tweet_username}/status/{tweet_id}"
 
+                        # フェーズ1では本文を空にしておく（フェーズ2で取得）
                         bookmarks.append({
                             'id': tweet_id,
                             'username': tweet_username,
-                            'text': tweet_text,
+                            'text': '',
                             'date': tweet_date,
                             'url': tweet_url
                         })
@@ -214,6 +220,135 @@ def fetch_bookmarks(config):
                     prev_count = new_count
 
             print(f"\n合計 {len(bookmarks)} 件のブックマークを取得しました")
+
+            # ===== フェーズ2: 各詳細ページを開いて全文を取得 =====
+            print("詳細ページから全文を取得中...")
+            for i, bookmark in enumerate(bookmarks):
+                try:
+                    tweet_id = bookmark['id']
+                    print(f"  [{i+1}/{len(bookmarks)}] {bookmark['url']}", end='\r')
+                    page.goto(bookmark['url'], wait_until='domcontentloaded', timeout=30000)
+
+                    # article要素が出現するまで待つ（SPAの遅延読み込み対応）
+                    try:
+                        page.wait_for_selector('article', timeout=15000)
+                    except Exception:
+                        continue  # 読み込み失敗はスキップ
+                    time.sleep(2)
+
+                    # 「もっと見る」があれば展開（長文ツイート対応）
+                    try:
+                        show_more = page.locator('[data-testid="tweet-text-show-more-link"]')
+                        if show_more.count() > 0:
+                            show_more.first.click()
+                            time.sleep(2)
+                    except Exception:
+                        pass
+
+                    # 投稿種別を判定して本文を取得
+                    post_type = page.evaluate("""() => {
+                        if (document.querySelector('[data-testid="twitterArticleReadView"]')) return 'x_article';
+                        if (document.querySelector('[data-testid="tweetText"]')) return 'tweet';
+                        return 'unknown';
+                    }""")
+
+                    text = ''
+                    article_full_text = ''
+                    if post_type == 'x_article':
+                        # X記事: twitterArticleReadViewから取得
+                        text = page.evaluate("""() => {
+                            const view = document.querySelector('[data-testid="twitterArticleReadView"]');
+                            return view ? view.innerText : '';
+                        }""")
+                    elif post_type == 'tweet':
+                        # 通常ツイート: article全体のinnerText（引用ツイートのプレビューも含む）
+                        article_full_text = page.evaluate(f"""() => {{
+                            const articles = document.querySelectorAll('article');
+                            for (const article of articles) {{
+                                if (!article.innerHTML.includes('{tweet_id}')) continue;
+                                return article.innerText;
+                            }}
+                            return document.querySelector('article')?.innerText || '';
+                        }}""")
+                        # tweetText部分（ツイート本文）を優先、なければarticle全体
+                        tweet_text_only = page.evaluate(f"""() => {{
+                            const articles = document.querySelectorAll('article');
+                            for (const article of articles) {{
+                                if (!article.innerHTML.includes('{tweet_id}')) continue;
+                                const tweetText = article.querySelector('[data-testid="tweetText"]');
+                                if (tweetText) return tweetText.innerText;
+                            }}
+                            return '';
+                        }}""")
+                        text = tweet_text_only or article_full_text
+
+                    if text and len(text) >= 30:
+                        bookmark['text'] = text
+
+                    # ===== 引用ツイートの全文を取得 =====
+                    # article全体のテキストに「引用」が含まれていれば引用ツイートが埋め込まれている
+                    if article_full_text and '引用' in article_full_text:
+                        try:
+                            current_url = page.url
+                            # 引用部分をクリックして遷移先URLを取得
+                            # innerTextの「引用」より後ろにある最初の長いテキスト行がタイトル候補
+                            lines_after_quote = article_full_text.split('引用\n', 1)
+                            quoted_title = ''
+                            if len(lines_after_quote) > 1:
+                                for line in lines_after_quote[1].split('\n'):
+                                    line = line.strip()
+                                    # @ユーザー名・日付・短い記号行を除外
+                                    if len(line) > 10 and not line.startswith('@') and not line.startswith('·') and line not in ('記事',):
+                                        quoted_title = line
+                                        break
+
+                            quoted_url = None
+                            if quoted_title:
+                                try:
+                                    with page.expect_navigation(timeout=8000):
+                                        page.get_by_text(quoted_title, exact=False).first.click()
+                                    quoted_url = page.url
+                                except Exception:
+                                    pass
+
+                            if quoted_url and quoted_url != current_url and '/status/' in quoted_url:
+                                print(f"\n    → 引用ツイート取得中: {quoted_url[:60]}", end='')
+                                page.wait_for_selector('article', timeout=10000)
+                                time.sleep(2)
+
+                                q_post_type = page.evaluate("""() => {
+                                    if (document.querySelector('[data-testid="twitterArticleReadView"]')) return 'x_article';
+                                    if (document.querySelector('[data-testid="tweetText"]')) return 'tweet';
+                                    return 'unknown';
+                                }""")
+
+                                if q_post_type == 'x_article':
+                                    q_text = page.evaluate("""() => {
+                                        const view = document.querySelector('[data-testid="twitterArticleReadView"]');
+                                        return view ? view.innerText : '';
+                                    }""")
+                                else:
+                                    q_text = page.evaluate("""() => {
+                                        const el = document.querySelector('[data-testid="tweetText"]');
+                                        return el ? el.innerText : '';
+                                    }""")
+
+                                if q_text and len(q_text) >= 30:
+                                    bookmark['text'] = (bookmark.get('text') or '') + \
+                                        f"\n\n--- 引用ツイート ({quoted_url}) ---\n" + q_text
+
+                                # 引用元ページに戻る
+                                page.goto(bookmark['url'], wait_until='domcontentloaded', timeout=30000)
+                                page.wait_for_selector('article', timeout=10000)
+                                time.sleep(1)
+
+                        except Exception:
+                            pass
+
+                except Exception:
+                    pass  # 取得失敗してもスキップして続行
+
+            print(f"\n全文取得完了")
 
         except Exception as e:
             print(f"エラーが発生しました: {e}")
