@@ -99,7 +99,7 @@ URL: {tweet['url']}
 
 # ===== Playwrightでブックマーク取得 =====
 
-def fetch_bookmarks(config):
+def fetch_bookmarks(config, max_bookmarks=None):
     """保存済みセッションを使ってXのブックマークを取得する"""
     session_file = config['session_file']
     bookmarks = []
@@ -142,9 +142,10 @@ def fetch_bookmarks(config):
             max_scrolls = 20  # 最大スクロール回数
             reached_cutoff = False  # 期間外に達したフラグ
 
-            max_bookmarks = 25  # 3月10日のツイートが範囲内に入るよう拡大
+            # 取得上限: 引数指定がなければデフォルト25件
+            fetch_limit = max_bookmarks if max_bookmarks is not None else 25
 
-            while scroll_attempts < max_scrolls and not reached_cutoff and len(bookmarks) < max_bookmarks:
+            while scroll_attempts < max_scrolls and not reached_cutoff and len(bookmarks) < fetch_limit:
                 # 現在表示されているツイートを取得
                 tweets = page.locator('[data-testid="tweet"]').all()
                 current_count = len(tweets)
@@ -386,6 +387,12 @@ def upload_to_gdrive(config, output_dir):
 # ===== メイン処理 =====
 
 def main():
+    import argparse
+    # コマンドライン引数のパース
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--limit', type=int, default=None, help='取得する最大件数（例: --limit 5）')
+    args = parser.parse_args()
+
     print("=== X Bookmark → NotebookLM 同期ツール ===\n")
 
     # 設定読み込み
@@ -395,11 +402,13 @@ def main():
     processed_ids = load_processed_ids(config)
     print(f"処理済みブックマーク数: {len(processed_ids)}件\n")
 
-    # ブックマーク取得
-    all_bookmarks = fetch_bookmarks(config)
+    # ブックマーク取得（limitが指定された場合はその件数のみ取得）
+    all_bookmarks = fetch_bookmarks(config, max_bookmarks=args.limit)
 
-    # 新着だけ抽出
+    # 新着だけ抽出（limitが指定された場合はさらにその件数に絞る）
     new_bookmarks = [b for b in all_bookmarks if b['id'] not in processed_ids]
+    if args.limit:
+        new_bookmarks = new_bookmarks[:args.limit]
     print(f"新着ブックマーク: {len(new_bookmarks)}件\n")
 
     if not new_bookmarks:
