@@ -18,8 +18,8 @@ def get_config_dir():
     """設定ディレクトリを返す（スクリプトの親ディレクトリ = リポジトリルート）"""
     if os.name == 'nt':  # Windows
         return Path(os.environ['USERPROFILE']) / '.x-bookmark-sync'
-    else:  # Linux/Mac: scriptsの親がリポジトリルート
-        return Path(__file__).parent.parent
+    else:  # Linux/Mac: Windowsと同じく ~/.x-bookmark-sync/ に統一
+        return Path.home() / '.x-bookmark-sync'
 
 
 def load_config():
