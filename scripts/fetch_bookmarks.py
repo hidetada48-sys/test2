@@ -208,9 +208,9 @@ def fetch_bookmarks(config, max_bookmarks=None):
 
                 print(f"  収集済み: {len(bookmarks)}件", end='\r')
 
-                # スクロール
-                page.keyboard.press('End')
-                time.sleep(2)
+                # 1画面分ずつスクロール（Endキーで一気に飛ぶとXのDOM仮想化でツイートが消えるため）
+                page.evaluate("window.scrollBy(0, window.innerHeight * 0.8)")
+                time.sleep(2.5)
 
                 # 新しいツイートが増えなくなったら終了
                 new_count = len(bookmarks)
