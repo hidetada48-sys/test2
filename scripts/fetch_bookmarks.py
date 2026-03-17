@@ -312,7 +312,7 @@ def fetch_bookmarks(config, max_bookmarks=None):
                                 except Exception:
                                     pass
 
-                            if quoted_url and quoted_url != current_url and '/status/' in quoted_url:
+                            if quoted_url and quoted_url != current_url and ('x.com' in quoted_url or 'twitter.com' in quoted_url):
                                 print(f"\n    → 引用ツイート取得中: {quoted_url[:60]}", end='')
                                 page.wait_for_selector('article', timeout=10000)
                                 time.sleep(2)
@@ -343,6 +343,40 @@ def fetch_bookmarks(config, max_bookmarks=None):
                                 page.wait_for_selector('article', timeout=10000)
                                 time.sleep(1)
 
+                        except Exception:
+                            pass
+
+                    # ===== 外部リンクの取得 =====
+                    # card.wrapperが存在する場合は外部リンク先のテキストを取得
+                    if post_type == 'tweet':
+                        try:
+                            card = page.locator('[data-testid="card.wrapper"] a').first
+                            if card.count() > 0:
+                                card_url = card.get_attribute('href')
+                                # t.co短縮URLまたはhttpsリンクで、X以外の外部サイトのみ対象
+                                if card_url and ('t.co' in card_url or card_url.startswith('https')) \
+                                        and 'x.com' not in card_url and 'twitter.com' not in card_url:
+                                    print(f"\n    → 外部リンク取得中: {card_url[:60]}", end='')
+                                    ext_page = context.new_page()
+                                    try:
+                                        ext_page.goto(card_url, wait_until='domcontentloaded', timeout=15000)
+                                        time.sleep(2)
+                                        # 記事本文を取得（article→main→bodyの順で試す）
+                                        ext_text = ext_page.evaluate("""() => {
+                                            const selectors = ['article', 'main', '#content', '.content', 'body'];
+                                            for (const sel of selectors) {
+                                                const el = document.querySelector(sel);
+                                                if (el && el.innerText.length > 200) return el.innerText;
+                                            }
+                                            return '';
+                                        }""")
+                                        if ext_text and len(ext_text) >= 100:
+                                            bookmark['text'] = (bookmark.get('text') or '') + \
+                                                f"\n\n--- 外部リンク ({ext_page.url}) ---\n" + ext_text[:5000]
+                                    except Exception:
+                                        pass
+                                    finally:
+                                        ext_page.close()
                         except Exception:
                             pass
 
