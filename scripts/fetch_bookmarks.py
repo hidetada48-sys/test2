@@ -296,12 +296,20 @@ def fetch_bookmarks(config, max_bookmarks=None):
                             lines_after_quote = article_full_text.split('引用\n', 1)
                             quoted_title = ''
                             if len(lines_after_quote) > 1:
+                                after_article_marker = False
                                 for line in lines_after_quote[1].split('\n'):
                                     line = line.strip()
+                                    # 「記事」マーカーが出たらX記事モード：次の行がタイトル
+                                    if line in ('記事', 'X 記事'):
+                                        after_article_marker = True
+                                        continue
                                     # @ユーザー名・日付・短い記号行を除外
-                                    if len(line) > 10 and not line.startswith('@') and not line.startswith('·') and line not in ('記事',):
-                                        quoted_title = line
-                                        break
+                                    if len(line) > 10 and not line.startswith('@') and not line.startswith('·'):
+                                        # X記事の場合はマーカー後の行を優先
+                                        if after_article_marker or not quoted_title:
+                                            quoted_title = line
+                                        if after_article_marker:
+                                            break
 
                             quoted_url = None
                             if quoted_title:
