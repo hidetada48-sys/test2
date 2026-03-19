@@ -16,3 +16,6 @@ debug/
 # Python
 __pycache__/
 *.pyc
+
+# Playwright MCPのキャッシュ
+.playwright-mcp/
