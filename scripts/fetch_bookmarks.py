@@ -99,10 +99,22 @@ URL: {tweet['url']}
 
 # ===== Playwrightでブックマーク取得 =====
 
-def fetch_bookmarks(config, max_bookmarks=None):
-    """保存済みセッションを使ってXのブックマークを取得する"""
+def fetch_bookmarks(config, processed_ids=None, max_bookmarks=None, from_date=None, to_date=None):
+    """保存済みセッションを使ってXのブックマークを取得する
+
+    Args:
+        processed_ids: 処理済みツイートIDのset（通常モード：これが出たら停止）
+        max_bookmarks: 取得上限件数（初回セットアップ用）
+        from_date: 取得開始日時（期間指定モード）
+        to_date:   取得終了日時（期間指定モード）
+    """
     session_file = config['session_file']
     bookmarks = []
+    if processed_ids is None:
+        processed_ids = set()
+
+    # 期間指定モードかどうか
+    date_range_mode = from_date is not None or to_date is not None
 
     with sync_playwright() as p:
         # ヘッドレスモード（画面なし）で起動
@@ -129,23 +141,27 @@ def fetch_bookmarks(config, max_bookmarks=None):
                 sys.exit(1)
 
             print("ログイン状態を確認しました。ブックマークを取得中...")
-            page.goto('https://x.com/i/bookmarks', wait_until='domcontentloaded', timeout=60000)
-            time.sleep(3)
+            # ※ 既にブックマークページにいるので再移動不要（2回gotoするとDOMがリセットされて0件になる）
+            # ツイートが表示されるまで待つ（SPA遅延読み込み対応）
+            try:
+                page.wait_for_selector('[data-testid="tweet"]', timeout=15000)
+            except Exception:
+                pass  # タイムアウトしても続行（スクロールで出てくる場合あり）
 
-            # 取得対象の期間（1ヶ月前まで）
+            # 安全網として30日前を下限に設定
             from datetime import timezone, timedelta
             cutoff_date = datetime.now(timezone.utc) - timedelta(days=30)
 
             # スクロールしながらツイートを収集
-            prev_count = 0
+            seen_ids = set()   # スキップ含む「今まで見たID」でスクロール継続を判断
+            prev_seen = 0
             scroll_attempts = 0
-            max_scrolls = 20  # 最大スクロール回数
+            max_scrolls = 30  # 最大スクロール回数（期間指定モードは多めに確保）
             reached_cutoff = False  # 期間外に達したフラグ
 
-            # 取得上限: 引数指定がなければデフォルト25件
-            fetch_limit = max_bookmarks if max_bookmarks is not None else 25
-
-            while scroll_attempts < max_scrolls and not reached_cutoff and len(bookmarks) < fetch_limit:
+            # 件数上限: --limit指定時のみ有効（通常モードは無制限）
+            while scroll_attempts < max_scrolls and not reached_cutoff and \
+                    (max_bookmarks is None or len(bookmarks) < max_bookmarks):
                 # 現在表示されているツイートを取得
                 tweets = page.locator('[data-testid="tweet"]').all()
                 current_count = len(tweets)
@@ -163,9 +179,10 @@ def fetch_bookmarks(config, max_bookmarks=None):
                             continue
                         tweet_id = match.group(1)
 
-                        # 既に収集済みならスキップ
-                        if any(b['id'] == tweet_id for b in bookmarks):
+                        # 今回のセッション内で既に見たIDならスキップ（重複除去）
+                        if tweet_id in seen_ids:
                             continue
+                        seen_ids.add(tweet_id)
 
                         # ユーザー名取得
                         try:
@@ -177,20 +194,37 @@ def fetch_bookmarks(config, max_bookmarks=None):
                             tweet_username = 'unknown'
 
                         # 投稿日時取得（本文はフェーズ2で詳細ページから取得）
+                        dt = None
+                        tweet_date = ''
                         try:
                             time_elem = tweet_elem.locator('time').first
                             tweet_date_raw = time_elem.get_attribute('datetime', timeout=2000) or ''
                             if tweet_date_raw:
                                 dt = datetime.fromisoformat(tweet_date_raw.replace('Z', '+00:00'))
-                                # 1ヶ月より古ければ打ち切り
-                                if dt < cutoff_date:
+                                tweet_date = dt.strftime('%Y-%m-%d %H:%M:%S')
+                        except Exception:
+                            pass
+
+                        # ===== 停止・スキップ判定 =====
+                        if dt:
+                            # 安全網: 30日より古ければ必ず停止
+                            if dt < cutoff_date:
+                                reached_cutoff = True
+                                break
+
+                            if date_range_mode:
+                                # 期間指定モード: --to より新しければスキップ、--from より古ければ停止
+                                if to_date and dt > to_date:
+                                    continue
+                                if from_date and dt < from_date:
                                     reached_cutoff = True
                                     break
-                                tweet_date = dt.strftime('%Y-%m-%d %H:%M:%S')
-                            else:
-                                tweet_date = ''
-                        except Exception:
-                            tweet_date = ''
+                            elif max_bookmarks is None:
+                                # 通常モード（引数なし）: 処理済みIDが出たら停止（以降は全て取得済みと判断）
+                                if tweet_id in processed_ids:
+                                    reached_cutoff = True
+                                    break
+                            # --limit指定時は処理済みIDがあっても停止しない（phase2でスキップ）
 
                         tweet_url = f"https://x.com/{tweet_username}/status/{tweet_id}"
 
@@ -203,31 +237,37 @@ def fetch_bookmarks(config, max_bookmarks=None):
                             'url': tweet_url
                         })
 
+                        # 件数上限に達したら内側ループも即停止
+                        if max_bookmarks is not None and len(bookmarks) >= max_bookmarks:
+                            reached_cutoff = True
+                            break
+
                     except Exception as e:
                         continue
 
-                print(f"  収集済み: {len(bookmarks)}件", end='\r')
+                print(f"  収集済み: {len(bookmarks)}件 (確認済み: {len(seen_ids)}件)", end='\r')
 
                 # 1画面分ずつスクロール（Endキーで一気に飛ぶとXのDOM仮想化でツイートが消えるため）
                 page.evaluate("window.scrollBy(0, window.innerHeight * 0.8)")
                 time.sleep(2.5)
 
-                # 新しいツイートが増えなくなったら終了
-                new_count = len(bookmarks)
-                if new_count == prev_count:
+                # 「見たID」が増えなくなったら終了（スキップ分も含めて判定）
+                new_seen = len(seen_ids)
+                if new_seen == prev_seen:
                     scroll_attempts += 1
                 else:
                     scroll_attempts = 0
-                    prev_count = new_count
+                    prev_seen = new_seen
 
             print(f"\n合計 {len(bookmarks)} 件のブックマークを取得しました")
 
-            # ===== フェーズ2: 各詳細ページを開いて全文を取得 =====
-            print("詳細ページから全文を取得中...")
-            for i, bookmark in enumerate(bookmarks):
+            # ===== フェーズ2: 未処理分だけ詳細ページを開いて全文を取得 =====
+            new_bookmarks = [b for b in bookmarks if b['id'] not in processed_ids]
+            print(f"詳細ページから全文を取得中... (新着: {len(new_bookmarks)}件)")
+            for i, bookmark in enumerate(new_bookmarks):
                 try:
                     tweet_id = bookmark['id']
-                    print(f"  [{i+1}/{len(bookmarks)}] {bookmark['url']}", end='\r')
+                    print(f"  [{i+1}/{len(new_bookmarks)}] {bookmark['url']}", end='\r')
                     page.goto(bookmark['url'], wait_until='domcontentloaded', timeout=30000)
 
                     # article要素が出現するまで待つ（SPAの遅延読み込み対応）
@@ -400,6 +440,7 @@ def fetch_bookmarks(config, max_bookmarks=None):
 
         browser.close()
 
+    # フェーズ1で収集した全件を返す（mainでprocessed_ids照合済みのnew_bookmarksも内包）
     return bookmarks
 
 
@@ -430,10 +471,26 @@ def upload_to_gdrive(config, output_dir):
 
 def main():
     import argparse
+    from datetime import timezone
     # コマンドライン引数のパース
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--limit', type=int, default=None, help='取得する最大件数（例: --limit 5）')
+    parser = argparse.ArgumentParser(description='XのブックマークをGoogle Driveに同期する')
+    parser.add_argument('--limit', type=int, default=None,
+                        help='取得上限件数（初回セットアップ時用）例: --limit 50')
+    parser.add_argument('--from', dest='from_date', default=None,
+                        help='取得開始日（期間指定モード）例: --from 2026-03-17')
+    parser.add_argument('--to', dest='to_date', default=None,
+                        help='取得終了日（期間指定モード）例: --to 2026-03-20')
     args = parser.parse_args()
+
+    # 日付文字列をdatetimeに変換
+    from_dt = None
+    to_dt = None
+    if args.from_date:
+        from_dt = datetime.strptime(args.from_date, '%Y-%m-%d').replace(tzinfo=timezone.utc)
+    if args.to_date:
+        # 終了日は当日23:59:59まで含める
+        to_dt = datetime.strptime(args.to_date, '%Y-%m-%d').replace(
+            hour=23, minute=59, second=59, tzinfo=timezone.utc)
 
     print("=== X Bookmark → NotebookLM 同期ツール ===\n")
 
@@ -444,13 +501,25 @@ def main():
     processed_ids = load_processed_ids(config)
     print(f"処理済みブックマーク数: {len(processed_ids)}件\n")
 
-    # ブックマーク取得（limitが指定された場合はその件数のみ取得）
-    all_bookmarks = fetch_bookmarks(config, max_bookmarks=args.limit)
+    # モード表示
+    if from_dt or to_dt:
+        print(f"【期間指定モード】 {args.from_date or '制限なし'} 〜 {args.to_date or '制限なし'}\n")
+    elif args.limit:
+        print(f"【件数制限モード】 最大{args.limit}件\n")
+    else:
+        print("【通常モード】 処理済みIDが出たら自動停止\n")
 
-    # 新着だけ抽出（limitが指定された場合はさらにその件数に絞る）
+    # ブックマーク取得
+    all_bookmarks = fetch_bookmarks(
+        config,
+        processed_ids=processed_ids,
+        max_bookmarks=args.limit,
+        from_date=from_dt,
+        to_date=to_dt
+    )
+
+    # 新着だけ抽出
     new_bookmarks = [b for b in all_bookmarks if b['id'] not in processed_ids]
-    if args.limit:
-        new_bookmarks = new_bookmarks[:args.limit]
     print(f"新着ブックマーク: {len(new_bookmarks)}件\n")
 
     if not new_bookmarks:
