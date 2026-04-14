@@ -77,6 +77,28 @@ rclone copy [統合ファイルのパス] gdrive:X-Bookmarks-Weekly/ --progress
 
 アップロード成功を確認したら完了を報告する。
 
+## ステップ4: Discord通知
+
+`~/test2/.discord_webhook` が存在する場合のみ実行する。
+
+```bash
+WEBHOOK_URL=$(cat ~/test2/.discord_webhook 2>/dev/null)
+```
+
+ファイルが存在しない場合はスキップして完了を報告する。
+
+存在する場合は、ステップ1で取得した件数とファイル名を使って通知を送る：
+
+```bash
+curl -s -X POST "$WEBHOOK_URL" \
+  -H "Content-Type: application/json" \
+  -d "{\"content\": \"週次ブックマーク収集完了\\n件数: ${COUNT}件\\nファイル: ${FILENAME}\"}"
+```
+
+`COUNT` はステップ1の出力から取得した件数、`FILENAME` は統合ファイル名（例: `bookmarks_0407-0413.md`）を使う。
+
+送信成功（HTTPステータス2xx）を確認したら完了を報告する。
+
 ---
 
 ## エラー対応

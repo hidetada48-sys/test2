@@ -19,3 +19,6 @@ __pycache__/
 
 # Playwright MCPのキャッシュ
 .playwright-mcp/
+
+# Discord Webhook URL（秘密情報）
+.discord_webhook
