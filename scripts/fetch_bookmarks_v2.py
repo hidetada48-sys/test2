@@ -398,9 +398,16 @@ def fetch_bookmarks(config, processed_ids, max_bookmarks=None, from_date=None, t
                     # 外部リンク取得
                     if post_type == 'tweet':
                         try:
-                            card = page.locator('[data-testid="card.wrapper"] a').first
+                            # そのツイートのarticle要素内に限定してcard.wrapperを探す（ページ全体だとサイドバー等の無関係なカードを拾う）
+                            tweet_article = page.locator(f'article:has(a[href*="/status/{tweet_id}"])').first
+                            if tweet_article.count() == 0:
+                                tweet_article = page.locator('article').first
+                            card = tweet_article.locator('[data-testid="card.wrapper"] a').first
                             if card.count() > 0:
                                 card_url = card.get_attribute('href')
+                                # twclid パラメータ付きURLは念のためスキップ（article絞り込みで大半は防げるが保険）
+                                if card_url and 'twclid' in card_url:
+                                    card_url = None
                                 if card_url and ('t.co' in card_url or card_url.startswith('https')) \
                                         and 'x.com' not in card_url and 'twitter.com' not in card_url:
                                     print(f"\n    → 外部リンク: {card_url[:60]}", end='')
