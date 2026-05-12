@@ -40,3 +40,70 @@ Failed to authenticate. API Error: 401 {"type":"error","error":{"type":"authenti
 **収集したブックマーク（2件）:**
 - **@tetumemo** — Claude Code × NotebookLM連携でトークン削減＆多彩なアウトプット生成
 - **@MakeAI_CEO** — Claudeでテキストから画像生成できる機能の紹介
+HTTP 204（成功）を確認。全ステップ完了です。
+
+---
+
+**週次ブックマーク収集完了（2026/04/14〜04/20）**
+
+| 項目 | 結果 |
+|---|---|
+| 収集件数 | **18件** |
+| 統合ファイル | `bookmarks/bookmarks_0414-0420.md` |
+| インデックス | `bookmarks/bookmarks_index_0414-0420.md` |
+| Google Drive | アップロード完了 |
+| Discord通知 | 送信成功（HTTP 204） |
+
+今週の主なトピックは **Claude Design のリリース**（6件）と **Claude Code コンテキスト管理**（2件）でした。
+全8ステップ完了しました。
+
+---
+
+## 実行結果まとめ
+
+| ステップ | 内容 | 結果 |
+|---|---|---|
+| 1. ブックマーク収集 | fetch_bookmarks_v2.py 実行 | **19件**取得、`bookmarks_0421-0428.md` 作成 |
+| 2. インデックス作成 | カテゴリ別分類（A〜E） | `bookmarks_index_0421-0428.md` 作成 |
+| 3. Google Driveアップロード | rclone で統合ファイルをアップロード | 成功（138KB） |
+| 4. Discord通知 | Webhook 送信 | 成功（HTTP 204） |
+| 5. INBOXフォルダ作成 | `2026-04-21/` フォルダ | 作成完了 |
+| 6. 全件精読・分析MD | `bookmarks_analysis.md` 生成 | 5カテゴリ全件分析＋推奨アクション8件 |
+| 7. 深掘りMD生成 | 3トピック（公式情報でWebSearch確認） | `ultrareview.md` / `claude_code_setup_plugin.md` / `claude_design.md` |
+| 8. git commit | dotfiles に4ファイルをコミット | `402080f` でコミット完了 |
+
+**今週の注目トピック：** `/ultrareview`（5/5まで3回無料）と `claude-code-setup` プラグイン（1行インストール）が今すぐ試せる実用的な新機能として最優先です。
+全ステップ完了しました。
+
+---
+
+**実行結果まとめ：**
+
+- **ステップ1** ✅ 26件の新着ブックマーク収集（2026/04/28〜05/04）
+- **ステップ2** ✅ インデックスファイル作成 → `bookmarks_index_0428-0504.md`（6カテゴリ）
+- **ステップ3** ✅ Google Driveにアップロード完了（`gdrive:X-Bookmarks-Weekly/`）
+- **ステップ4** ✅ Discord通知送信完了（HTTP 204）
+- **ステップ5** ✅ INBOXフォルダ作成 → `~/dotfiles/INBOX/bookmarks_analysis/2026-04-28/`
+
+**今週のブックマーク傾向：** Claude Code Skills・プラグイン・MCP関連が全体の約6割を占める。Anthropic公式ガイドへの言及が増え、CodxやGeminiなど他社ツールへの注目も登場した週でした。
+全ステップ完了です。
+
+---
+
+## 実行結果まとめ
+
+| ステップ | 結果 |
+|---|---|
+| ステップ1：収集 | **15件**新着、`bookmarks_0505-0509.md` に保存 |
+| ステップ2：インデックス作成 | `bookmarks_index_0505-0509.md` を5カテゴリで作成 |
+| ステップ3：Google Driveアップロード | 完了（207KB） |
+| ステップ4：Discord通知 | 送信完了（HTTP 204） |
+| ステップ5：INBOXフォルダ | `bookmarks_analysis/2026-05-05` 作成完了 |
+
+---
+
+**今週の主なトピック（2026/05/05〜09）：**
+- **Anthropic新機能ラッシュ** — Dreaming（AI自己進化）、Managed Agents β、SpaceX提携でGPU大量確保
+- **Claude Code vs Codex論争** — 「どちらか」から「使い分け」へ移行。設計はClaude Code→実装はCodexパターンが定着
+- **HTML出力ブーム** — Claude Codeチームが推奨。Markdownより情報密度・可読性が高い
+- **金融MCP登場** — 株式17,000銘柄データへのMCPアクセスが可能に
