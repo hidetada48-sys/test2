@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ブックマーク分析レポート 2026-05-12</title>
+<style>
+  body { font-family: sans-serif; max-width: 860px; margin: 40px auto; padding: 0 20px; line-height: 1.7; color: #222; }
+  h1 { border-bottom: 2px solid #333; padding-bottom: 8px; }
+  h2 { margin-top: 2em; border-left: 4px solid #0077cc; padding-left: 10px; }
+  h3 { color: #555; }
+  ul { padding-left: 1.4em; }
+  li { margin: 6px 0; }
+  .meta { color: #666; font-size: 0.9em; margin-bottom: 1.5em; }
+  .tag-p1 { background: #e74c3c; color: #fff; border-radius: 3px; padding: 1px 6px; font-size: 0.8em; font-weight: bold; }
+  .tag-p2 { background: #e67e22; color: #fff; border-radius: 3px; padding: 1px 6px; font-size: 0.8em; font-weight: bold; }
+  .tag-p3 { background: #27ae60; color: #fff; border-radius: 3px; padding: 1px 6px; font-size: 0.8em; font-weight: bold; }
+  .done { background: #f5f5f5; padding: 12px 16px; border-radius: 6px; }
+  .pickup { background: #fffbe6; border: 1px solid #f0c040; padding: 16px 20px; border-radius: 8px; }
+  hr { border: none; border-top: 1px solid #ddd; margin: 2em 0; }
+  code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+</style>
+</head>
+<body>
+
+<h1>ブックマーク分析レポート</h1>
+<div class="meta">
+  <strong>作成日：</strong>2026-05-12　／　<strong>元データ：</strong>bookmarks_0505-0509.md（15件）
+</div>
+<div class="meta">今週の分布：Codex比較（4件）・Claude Code活用術（4件）・Anthropic新機能（4件）・MCP連携（2件）・ビジネス活用（1件）</div>
+
+<h2>Codex比較・活用（4件 — 今週最大テーマ）</h2>
+
+<h3>🛠 環境改善・向上</h3>
+<ul>
+  <li><span class="tag-p1">P1</span> <strong>Claude Code→Codexレビューパターンを1回試す</strong>：Claude Codeで設計（Plan）を作り、そのコードやプランをCodexに渡してレビューさせる。ChatGPT Plusがあれば追加費用ゼロ。まず <code>x-bookmark-weekly</code> のスクリプトをレビューさせてみるのが現実的な入口（元記事：C-3）</li>
+</ul>
+
+<h3>📚 学習</h3>
+<ul>
+  <li><span class="tag-p2">P2</span> <strong>Claude Code vs Codexの使い分け原則</strong>：Claude Code＝長文・コンテキスト把握・Skills活用、Codex＝ゼロからの実装速度・コード品質・クラウド放置実行。「どちらか」ではなく「何にどちらを使うか」で差がつくフェーズ（元記事：C-1〜C-4）</li>
+  <li><span class="tag-p2">P2</span> <strong>rate limit arbitrageパターン</strong>：両ツールを並列で動かし、片方がレート制限に達したら切り替える運用。tmux上で管理する「smux」ツールが海外で広まっている（元記事：C-3）</li>
+</ul>
+
+<h3>📡 情報収集</h3>
+<ul>
+  <li><span class="tag-p3">P3</span> <strong>@MakeAI_CEO</strong>：Claude Code vs Codex比較記事（71万表示）の著者。副業・マネタイズ視点での両ツール最新動向を継続発信している</li>
+</ul>
+
+<hr>
+
+<h2>Claude Code活用術・ベストプラクティス（4件）</h2>
+
+<h3>🛠 環境改善・向上</h3>
+<ul>
+  <li><span class="tag-p1">P1</span> <strong>あなたのCLAUDE.mdを今すぐ刈り込む</strong>：Anthropic公式が「膨らんだCLAUDE.mdは本当に必要な指示をClaudeに無視させる」と明言。基準は「この行を消したらClaudeがミスをするか？」。しないなら削除。あなたの <code>~/.claude/CLAUDE.md</code> に今日適用できる（元記事：B-3）</li>
+  <li><span class="tag-p1">P1</span> <strong>既存スキルにサブエージェントを自動生成</strong>：Claude Codeに「このスキルに最適なサブエージェント作って」と投げると4個を自動生成。<code>x-bookmark-analyze</code> や <code>x-bookmark-weekly</code> に今すぐ使える。1文で試せる（元記事：B-4）</li>
+  <li><span class="tag-p2">P2</span> <strong>x-bookmark-analyzeのHTMLレポート化</strong>：今のレポートはMarkdown形式だが、スキルの出力に「HTMLで作成」を追加するとブラウザで見やすくなる。<code>x-bookmark-analyze</code> スキルのフォーマット指定を変更するだけ（元記事：B-1）</li>
+  <li><span class="tag-p2">P2</span> <strong>Subagentsを実際に使い始める</strong>：あなたはHooksとSkillsは使用済みだが、Subagentsは未活用。<code>~/.claude/agents/</code> にエージェント定義ファイルを置くことで独立コンテキストで並列処理できる。まず既存スキルのレビュー用Subagentを1つ作る（元記事：B-3）</li>
+</ul>
+
+<h3>📚 学習</h3>
+<ul>
+  <li><span class="tag-p2">P2</span> <strong>Explore→Plan→Implement→Commitの4フェーズ</strong>：プランモードはスコープが大きく・アプローチが不明確なときだけ使う。タイポ修正・変数リネームなど小さい作業はプランモード不要と公式が明言（元記事：B-3）</li>
+  <li><span class="tag-p2">P2</span> <strong>「Claudeに自分で検証させる仕組みを先に作る」が公式第一原則</strong>：テスト・スクリーンショット・期待出力を渡すとClaudeが自己検証できる。スクリプト系タスクでは実行結果の期待値をプロンプトに含める（元記事：B-3）</li>
+</ul>
+
+<h3>📡 情報収集</h3>
+<ul>
+  <li><span class="tag-p3">P3</span> <strong>awesome-claude-code（GitHub）</strong>：何百ものSkillsが公開されているリポジトリ。既存スキルの強化アイデア収集に使える</li>
+</ul>
+
+<hr>
+
+<h2>Anthropic新機能・アップデート（4件）</h2>
+
+<h3>📚 学習</h3>
+<ul>
+  <li><span class="tag-p2">P2</span> <strong>レート制限2倍・ピーク時間制限撤廃を活かす</strong>：SpaceXのColossusデータセンター契約で全プランのレート制限が2倍に。今まで制限を気にして分割していた処理を一度に投げられるようになった。Remoteルーティンの負荷を上げる余地がある（元記事：A-1）</li>
+  <li><span class="tag-p2">P2</span> <strong>Dreaming機能を自分のRemoteルーティンで試す</strong>：あなたはすでに x-bookmark-weekly を Claude Managed Agents で運用している。Dreamingはまさにこの用途向けの機能で、週次ルーティンが回を重ねるごとに品質が上がる仕組みになる。研究プレビューへのアクセス申請を検討する価値がある（元記事：A-2, A-3, A-4）</li>
+</ul>
+
+<hr>
+
+<h2>外部連携・MCP（2件）</h2>
+
+<h3>🛠 環境改善・向上</h3>
+<ul>
+  <li><span class="tag-p2">P2</span> <strong>financial-datasets MCPを追加（金融リサーチ用途がある場合のみ）</strong>：17,000銘柄の株式データに自然言語でアクセス可能。1行で追加できる：<code>claude mcp add --transport http financial-datasets https://mcp.financialdatasets.ai</code>　金融リサーチ用途がなければスキップでよい（元記事：D-1）</li>
+</ul>
+
+<hr>
+
+<h2>✅ 実施済み（参考）</h2>
+<div class="done">
+<ul>
+  <li>Skills機能：<code>~/.claude/skills/</code> に9スキルをインストール済み（x-bookmark-weekly, x-bookmark-analyze等）</li>
+  <li>PostToolUseフック：<code>post-tool-check.sh</code> で.py/.json構文チェック済み</li>
+  <li>Auto Mode（acceptEdits）：settings.json 設定済み</li>
+  <li>disabledMcpServers：Gmail/Calendar MCP無効化済み</li>
+</ul>
+</div>
+
+<hr>
+
+<h2>今週のピックアップ3選</h2>
+<div class="pickup">
+<ol>
+  <li><strong>CLAUDE.mdを今すぐ刈り込む <span class="tag-p1">P1</span></strong> — 「消したらミスをするか？」の1基準を今日適用するだけ。公式が根拠を出してくれたので迷わず実行できる</li>
+  <li><strong>既存スキルへのサブエージェント自動生成 <span class="tag-p1">P1</span></strong> — 「このスキルに最適なサブエージェント作って」の1文で試せる。<code>x-bookmark-analyze</code> の精度改善に直結する可能性が高い</li>
+  <li><strong>Codex使い分けパターンを1回試す <span class="tag-p1">P1</span></strong> — ChatGPT Plusがあれば追加費用ゼロ。まず <code>x-bookmark-weekly</code> スクリプトのレビューをCodexに頼んでみるだけでよい</li>
+</ol>
+</div>
+
+</body>
+</html>
