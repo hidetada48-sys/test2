@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ブックマーク分析レポート 2026-07-25</title>
+<style>
+  :root{--p1:#e6462e;--p2:#e08a1e;--p3:#3a7bd5;--bg:#f7f7f5;--card:#fff;--ink:#2b2b2b;--muted:#777;--line:#e5e2dc;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);line-height:1.75;
+    font-family:system-ui,-apple-system,"Segoe UI","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;}
+  .wrap{max-width:860px;margin:0 auto;padding:32px 20px 80px;}
+  h1{font-size:1.6rem;margin:0 0 6px;border-bottom:3px solid var(--ink);padding-bottom:14px;}
+  h2{font-size:1.2rem;margin:34px 0 12px;padding-left:12px;border-left:5px solid var(--ink);}
+  h3{font-size:1rem;margin:20px 0 8px;color:#444;}
+  .meta{color:var(--muted);font-size:.9rem;}
+  .lead{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:14px 0;}
+  ul.items{padding-left:0;list-style:none;margin:0;}
+  li.item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0;}
+  .num{font-weight:700;color:var(--muted);margin-right:6px;}
+  .tag{display:inline-block;color:#fff;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:999px;margin-right:8px;}
+  .p1{background:var(--p1);} .p2{background:var(--p2);} .p3{background:var(--p3);}
+  a{color:var(--p3);}
+  code{background:#eee;padding:1px 5px;border-radius:4px;font-size:.9em;}
+  footer{margin-top:40px;color:var(--muted);font-size:.82rem;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>ブックマーク分析レポート</h1>
+<div class="meta"><strong>作成日：2026-07-25</strong></div>
+<div class="meta"><strong>元データ：bookmarks_0710-0720.md（5件）</strong></div>
+<p class="lead">今週は「Claude Code活用論」2件が主軸。AI社員化の段階論（記事3）とClaude Code全機能マップ（記事5）が中心で、これに出力形式論（HTML化）とプロンプト設計術、公式動向が続く。既にHTML化ルールや多数のスキルを運用している現環境では、<strong>新規導入よりも「今の運用を機能マップに照らして棚卸しする」段階</strong>にある。</p>
+<h2>AI社員化の段階論 ―― 焦って自動化しない</h2>
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+<li class="item"><span class="num">1.</span><span class="tag p1">P1</span> <strong>「業務単位」でスキル化する視点を持つ</strong>：記事3の核心は「AI社員ではなく業務単位で小さく作る」。抽象的な役割（AIマーケター等）ではなく「領収書ファイル名をルール通り整理するAI」のように狭く切る。→ 今後スキルを新設するときは <code>skill-creator</code> で作る前に「入力・出力・合格基準が1行で書けるか」を確認基準にする。書けない粒度のスキルは作らない、というルールをCLAUDE.mdの「新機能を作る前」節に追記できる。（元記事：3）</li>
+</ul>
+<h3>📚 学習</h3>
+<ul class="items">
+<li class="item"><span class="num">2.</span><span class="tag p2">P2</span> <strong>「暗黙知の言語化 → 型化 → 半自動化」の順番</strong>：チャットで勝ちパターンが固まった業務だけをClaude Code側（スキル・CLAUDE.md）に移す、という順序論。自分の既存スキル（note生成・ブックマーク分析等）が「チャットで何度も回して型が固まったもの」に対応しているか、逆算で検証する視点として学べる。（元記事：3）</li>
+</ul>
+<h2>Claude Code全機能マップ ―― 9レイヤーで棚卸し</h2>
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+<li class="item"><span class="num">3.</span><span class="tag p1">P1</span> <strong>レイヤー混同のセルフチェック</strong>：記事5の警告「本来CLAUDE.mdに書くべきをHookに書く／Permissionで止めるべきをSkillの文章でお願いしただけ」は、まさに設定を触る人が陥る罠。→ 今の自分の設定を「モデル/Tool/Agent/Skill/Plugin/Hook/Permission」の役割で1度棚卸しし、&quot;文章でお願いしているだけの強制事項&quot;がないか点検する。（元記事：5）</li>
+<li class="item"><span class="num">4.</span><span class="tag p2">P2</span> <strong><code>.claude/rules/</code> によるコンテキスト出し分け</strong>：CLAUDE.mdを場所別に分割し、触るファイルに応じて必要なルールだけ読み込む仕組み。実施済みメモでは「現状不要」と判断済みだが、CLAUDE.mdが肥大化してきた今、HTML化ルールやGitルールなど「特定作業時だけ効けばよいもの」を rules/ に切り出す再検討の価値がある。（元記事：5）</li>
+</ul>
+<h3>📚 学習</h3>
+<ul class="items">
+<li class="item"><span class="num">5.</span><span class="tag p2">P2</span> <strong>Advisor（第二意見）とFork の使い分け</strong>：Advisor＝メイン会話の全履歴を渡して「その判断どう思う？」と助言をもらう相談役、Fork＝会話まるごと引き継いで別案を調べる分身。Subagentとの違いを含め、重要判断前の使い分けとして押さえる。（元記事：5）</li>
+<li class="item"><span class="num">6.</span><span class="tag p3">P3</span> <strong>Checkpointはバックアップではない</strong>：Bashが変更したファイル・DB更新・Git Push・本番Deployは元に戻らない。だから区切りでのGitコミット（保存3点セット）が正しい、という裏付け。現運用の妥当性を確認できる知識。（元記事：5）</li>
+</ul>
+<h2>出力形式論 ―― Markdown から HTML へ</h2>
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+<li class="item"><span class="num">7.</span><span class="tag p2">P2</span> <strong>HTML出力の&quot;活かし方&quot;を一段深める</strong>：記事1は「コードレビューはカラフルなdiff、計画はインタラクティブなカンバン、プロンプト調整は最適化ツールとしてHTML化」と具体用途を挙げる。→ 現在のHTML化ルールは「回答をHTMLで返す」止まりだが、例えば新規に<strong>手続き比較表を色分けHTMLで出す</strong>、<strong>チェックリストを開閉式HTMLにする</strong>など、静的変換の一歩先（インタラクティブ化）を試す余地がある。（元記事：1）</li>
+</ul>
+<h3>📚 学習</h3>
+<ul class="items">
+<li class="item"><span class="num">8.</span><span class="tag p3">P3</span> <strong>「編集しやすさ」の価値低下という論点</strong>：Markdownの利点＝手編集のしやすさが、AIが1000行を一括生成する時代には不要になった、という主張。トークン増・生成2〜4倍遅の代償を体験価値10倍が上回るか、は自分の用途で判断すべき論点として学ぶ。（元記事：1）</li>
+</ul>
+<h2>プロンプト設計術</h2>
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+<li class="item"><span class="num">9.</span><span class="tag p1">P1</span> <strong>「雑な指示」テンプレの棚卸し</strong>：記事2・記事3に共通するのは「&quot;いい感じにして&quot;からの脱却」。→ よく使う依頼（記事・メール・要約など）について「誰向け・目的・トーン・出力条件」を埋めた定型プロンプトを1つ作り、<code>~/dotfiles/INBOX/</code> あたりに置いて再利用する。1ファイル作るだけで今日試せる。（元記事：2・3）</li>
+</ul>
+<h3>📡 情報収集</h3>
+<ul class="items">
+<li class="item"><span class="num">10.</span><span class="tag p3">P3</span> <strong>@shimotti_ai（Fable 5向けプロンプト集）</strong>：Fable 5前提の実践プロンプトを発信。最上位モデルの引き出し方を具体例で追える発信者としてウォッチ。（元記事：2）</li>
+</ul>
+<h2>公式動向</h2>
+<h3>📡 情報収集</h3>
+<ul class="items">
+<li class="item"><span class="num">11.</span><span class="tag p3">P3</span> <strong>@claudeai 教育向け展開（K-12教師に無料提供）</strong>：米国認証教育者へプレミアム機能を無料開放し、50州の学術基準にカリキュラム接続。Anthropicが「業種特化ソリューション」を広げる動きの一例。士業・専門業務向けの類似展開が来るかの先行指標としてウォッチ。（元記事：4）</li>
+</ul>
+<h2>✅ 実施済み（参考）</h2>
+<ul class="items">
+<li class="item"><strong>HTML化での回答提示</strong> — CLAUDE.mdの最優先ルールとして運用中（記事1の方向と一致。記事1は&quot;次の一歩=インタラクティブ化&quot;の示唆）</li>
+<li class="item"><strong>区切りでのGitコミット（保存3点セット）</strong> — 運用中（記事5のCheckpoint注意と整合）</li>
+<li class="item"><strong>モデル/Effort/Fast modeの理解</strong> — <code>/effort high</code>・<code>/fast</code> を運用ルール化済み（記事5の該当章はおさらいとして有効）</li>
+<li class="item"><strong>スキルによる業務型化</strong> — note生成・ブックマーク分析等を運用中（記事3の「業務単位で作る」を先取り）</li>
+</ul>
+<h2>今週のピックアップ3選</h2>
+<ul class="items">
+<li class="item"><span class="num">1.</span><strong>レイヤー混同のセルフチェック</strong>（本文3番）— 設定を頻繁に触る環境ほど効く。&quot;文章でお願いしただけの強制事項&quot;を1度洗い出すだけで事故予防になる。</li>
+<li class="item"><span class="num">2.</span><strong>雑な指示テンプレの棚卸し</strong>（本文9番）— 定型プロンプトを1ファイル作るだけで今日から着手でき、全業務の出力品質に効く。</li>
+<li class="item"><span class="num">3.</span><strong>業務単位でスキル化する視点</strong>（本文1番）— 今後のスキル新設の判断基準になり、「作ったけど使えない」スキルの量産を防げる。</li>
+</ul>
+<footer>Xブックマーク週次分析 ／ x-bookmark-analyze</footer>
+</div>
+</body>
+</html>

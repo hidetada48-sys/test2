@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ブックマーク分析レポート 2026-07-07</title>
+<style>
+  :root{
+    --p1:#e6462e; --p2:#e08a1e; --p3:#3a7bd5;
+    --bg:#f7f7f5; --card:#fff; --ink:#2b2b2b; --muted:#777; --line:#e5e2dc;
+  }
+  *{box-sizing:border-box}
+  body{
+    font-family:-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.75;
+    margin:0; padding:0 16px 80px;
+  }
+  .wrap{max-width:860px; margin:0 auto}
+  header{padding:36px 0 20px; border-bottom:3px solid var(--ink)}
+  h1{font-size:1.7rem; margin:0 0 8px}
+  .meta{color:var(--muted); font-size:.9rem}
+  .lead{background:#fffdf5; border:1px solid var(--line); border-left:4px solid var(--p2);
+    padding:14px 18px; border-radius:8px; margin:22px 0; font-size:.95rem}
+  h2{font-size:1.3rem; margin:40px 0 6px; padding-bottom:6px; border-bottom:2px solid var(--line)}
+  h2 .g{color:var(--muted); font-size:.85rem; font-weight:normal}
+  .desc{color:#555; font-size:.92rem; margin:6px 0 18px}
+  h3{font-size:1.02rem; margin:22px 0 10px; color:#444}
+  ul.items{list-style:none; padding:0; margin:0}
+  ul.items li{background:var(--card); border:1px solid var(--line); border-radius:10px;
+    padding:13px 16px; margin:10px 0; box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .num{display:inline-block; min-width:1.6em; font-weight:700; color:var(--muted)}
+  .tag{display:inline-block; font-size:.72rem; font-weight:700; color:#fff;
+    padding:2px 8px; border-radius:999px; margin-right:6px; vertical-align:2px}
+  .p1{background:var(--p1)} .p2{background:var(--p2)} .p3{background:var(--p3)}
+  .src{color:var(--muted); font-size:.8rem}
+  .done{background:#eef3ec; border:1px solid #d3e0cf; border-radius:10px; padding:14px 18px}
+  .done li{margin:4px 0}
+  .pick{background:#fff; border:2px solid var(--ink); border-radius:12px; padding:20px 22px; margin-top:14px}
+  .pick ol{padding-left:22px; margin:0}
+  .pick li{margin:12px 0; font-size:1.02rem}
+  .pick b{font-size:1.05rem}
+  .legend{font-size:.82rem; color:var(--muted); margin-top:10px}
+  footer{margin-top:50px; padding-top:16px; border-top:1px solid var(--line);
+    color:var(--muted); font-size:.82rem; text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>📑 ブックマーク分析レポート</h1>
+  <div class="meta">作成日：2026-07-07 ／ 元データ：bookmarks_0630-0706.md（7件）＋ bookmarks_0706-0706.md（2件）＝<b>計9件</b></div>
+  <div class="legend">
+    <span class="tag p1">P1</span>今すぐ・1コマンドで試せる
+    <span class="tag p2">P2</span>近いうちに着手
+    <span class="tag p3">P3</span>中長期でウォッチ・習得
+  </div>
+</header>
+
+<div class="lead">
+  期間が連続する2ファイルをまとめて分析。今週の主軸は圧倒的に <b>Skills設計・導入</b>（9件中4件）。次いで <b>Claude Code自動化</b>、<b>モデル最新情報</b>。
+</div>
+
+<h2>A. Skills設計・導入 <span class="g">今週の最大テーマ</span></h2>
+<div class="desc">海外バズ記事（67選 / 20 Skills / SNS発信10 Skills）と Vault設計が集中。共通メッセージは「プロンプトは毎回消える／Skillsは一度書けば永久に残る」。skill-creator・superpowers 導入済みなので、次は <b>Meta Skills層の補強</b> と <b>自分の実務（社労士・note）のスキル化</b>。</div>
+
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+  <li><span class="num">1.</span><span class="tag p1">P1</span><b>Write a Skill を追加</b>：<code>npx skills@latest add mattpocock/skills/write-a-skill</code>。skill-creator の下書きを「構造・段階的開示・バンドルリソース」で仕上げる補完スキル。2つ揃うと自作スキルの品質が安定。<span class="src">（元記事：0706-A-1）</span></li>
+  <li><span class="num">2.</span><span class="tag p1">P1</span><b>自分の実務をスキル化する</b>：67選/20 Skillsの本質は「定型業務のスキル化」。例：「就業規則の条文チェック」「顧問先への月次お知らせ文の骨格生成」を1つSKILL.md化。skill-creator に「この作業をスキルにして」と渡すだけ。<span class="src">（元記事：0630-4, 0630-5）</span></li>
+  <li><span class="num">3.</span><span class="tag p2">P2</span><b>Git Guardrails の要否を確認</b>：<code>npx skills@latest add mattpocock/skills/git-guardrails-claude-code</code>（push/reset --hard/clean をフックでブロック）。settings.json の deny リストと重複を確認してから。<span class="src">（元記事：0706-A-1）</span></li>
+  <li><span class="num">4.</span><span class="tag p2">P2</span><b>Vault 4クラスター設計の部分導入</b>：Firmware/Prompts/Knowledge Base/Journal 構造。basic-memory＋auto-memory＋INBOX 運用中のため全面移行は不要。「結果を正しいフォルダへ自動保存」の発想だけ取り込む。<span class="src">（元記事：0630-C）</span></li>
+</ul>
+
+<h3>📚 学習</h3>
+<ul class="items">
+  <li><span class="num">5.</span><span class="tag p2">P2</span><b>導入順序</b>：①Write a Skill/Skill Creator ②Grill Me等Planning系 ③Git Guardrails/TDD ④superpowersをベース層 ⑤ビジネス系。全部入れず各1つずつが鉄則。brainstorming は Grill Me に近い役割。<span class="src">（元記事：0706-A-1）</span></li>
+  <li><span class="num">6.</span><span class="tag p3">P3</span><b>「作業→判断」への時間シフト論</b>：構成・情報整理・調査・展開という"手を動かす時間"をSkillsに移し、"頭を使う時間"を増やす思考法。個々のツールよりこの設計思想の理解が長期の効き目。<span class="src">（元記事：0630-4）</span></li>
+</ul>
+
+<h3>📡 情報収集</h3>
+<ul class="items">
+  <li><span class="num">7.</span><span class="tag p3">P3</span><b>@ClaudeCode_love / @ClaudeCode_UT / @taiyaki_ai3</b>：海外バズ記事を日本の実務向けに噛み砕く発信者。taiyaki は非エンジニア／発信・副業目線でコピペ素材が多く note運用と好相性。</li>
+  <li><span class="num">8.</span><span class="tag p3">P3</span><b>mattpocock/skills と skillsmp.com</b>：Meta/Planning/安全装置系スキルの主要ソース。新課題は「作る前にまず検索」。</li>
+</ul>
+
+<h2>B. Claude Code自動化・ワークフロー</h2>
+<div class="desc">「手を動かさず自律実行」の実例が集中。/goal と Dynamic Workflows は今すぐ試せる。</div>
+
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+  <li><span class="num">9.</span><span class="tag p1">P1</span><b>/goal でQA自動化を試す</b>：「/goal テスト全部通せ、Lintも綺麗に」で自律的に修正ループ。<code>/effort high</code> はルール化済みだが <code>/goal</code> は未使用。次のコード作業で1回試すのが手軽。<span class="src">（元記事：0630-3）</span></li>
+  <li><span class="num">10.</span><span class="tag p2">P2</span><b>Dynamic Workflows（Sonnet 5 × Ultracode）</b>：①/model を Sonnet 5 ②/effort を Ultracode ③複雑タスク開始。<code>Ultracode</code> は新設定のため「実装前に公式確認」ルールに沿い doc-verifier で裏取りしてから。Fable 5＝アドバイザー役／Sonnet 5＝実装役の使い分けも。<span class="src">（元記事：0630-7, 0706-B-1）</span></li>
+</ul>
+
+<h3>📚 学習</h3>
+<ul class="items">
+  <li><span class="num">11.</span><span class="tag p3">P3</span><b>URL→UI再現／ブラウザコメント修正</b>：URL貼付で色・フォント・レイアウトを自動抽出しUI再現、HTMLにGoogle Docs風コメントで自動修正。note用の図解・LP作成時に効く手法として頭の隅に。<span class="src">（元記事：0630-5, 0630-6）</span></li>
+</ul>
+
+<h3>📡 情報収集</h3>
+<ul class="items">
+  <li><span class="num">12.</span><span class="tag p3">P3</span><b>@1stegon_ai / @daniel_mac8</b>：前者は実務ショートカット系、後者はモデル使い分け・Dynamic Workflowsの一次情報に強い。</li>
+</ul>
+
+<h2>C. Claudeモデル最新情報</h2>
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+  <li><span class="num">13.</span><span class="tag p1">P1</span><b>Fable 5 を実際に使ってみる</b>：7/6時点で「明日リリース」＝本日7/7はリリース済みの見込み。アドバイザー役（設計・レビュー）として Opus/Sonnet と役割分担。まず1タスクで所感を掴む。<span class="src">（元記事：0706-B-1）</span></li>
+</ul>
+<h3>📚 学習</h3>
+<ul class="items">
+  <li><span class="num">14.</span><span class="tag p3">P3</span><b>Sonnet 5 の立ち位置</b>：歴代Sonnetで最もエージェント的だがベンチはOpus 4.8に劣る。「安価・高速な実装役」として effort/Dynamic Workflowsと組むのが定石。<span class="src">（元記事：0630-2, 0630-7）</span></li>
+</ul>
+
+<h2>D. 自己啓発・リーダーシップ</h2>
+<h3>📚 学習</h3>
+<ul class="items">
+  <li><span class="num">15.</span><span class="tag p3">P3</span><b>溝口勇児の教育動画</b>：厳しい正論＋本質を愛を持って指摘するリーダーシップ論。「相手を変える伝え方」の教材として。<span class="src">（元記事：0630-1）</span></li>
+</ul>
+
+<h2>✅ 実施済み（参考）</h2>
+<div class="done">
+<ul>
+  <li><b>skill-creator</b> → 導入済み。推奨2・5の土台。</li>
+  <li><b>superpowers</b>（TDD/systematic-debugging等）→ 導入済み。67選記事の「ベース層」に相当。</li>
+  <li><b>brainstorming</b> → 導入済み。Grill Me（Planning系）に近い役割。</li>
+  <li><b>/effort high の事前実行</b> → CLAUDE.mdでルール化済み。推奨10のUltracodeはこの発展形。</li>
+  <li><b>記憶の構造化</b>（basic-memory＋auto-memory＋INBOX）→ 運用中。Vault設計（推奨4）の思想は部分的に実装済み。</li>
+</ul>
+</div>
+
+<h2>⭐ 今週のピックアップ3選</h2>
+<div class="pick">
+<ol>
+  <li><b>Fable 5 を実際に使う</b>（本文13番）<span class="tag p1">P1</span><br>本日リリース済みの見込み。アドバイザー役として1タスク試すだけで今後のモデル使い分けの判断材料に。最も低コストで効果を体感できる。</li>
+  <li><b>自分の実務をスキル化する</b>（本文2番）<span class="tag p1">P1</span><br>今週のバズ記事全部の結論。skill-creator導入済みなので、社労士業務やnote運用の定型作業を1つSKILL.md化すれば蓄積が即戦力に変わる。</li>
+  <li><b>/goal でQA自動化を試す</b>（本文9番）<span class="tag p1">P1</span><br>1コマンドで自律修正ループ。次のコード作業で1回打つだけ。<code>/effort high</code>に次ぐ武器になる。</li>
+</ol>
+</div>
+
+<footer>
+  Xブックマーク週次分析 ／ x-bookmark-analyze ／ 生成：2026-07-07
+</footer>
+
+</div>
+</body>
+</html>
