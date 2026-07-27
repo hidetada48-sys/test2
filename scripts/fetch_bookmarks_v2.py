@@ -151,7 +151,7 @@ def fetch_bookmarks(config, processed_ids, max_bookmarks=None, from_date=None, t
     cutoff_date = max(cutoff_date, V2_START_DATE)
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=True, executable_path='/opt/pw-browsers/chromium')
         context = browser.new_context(
             storage_state=session_file,
             viewport={'width': 1280, 'height': 900},
