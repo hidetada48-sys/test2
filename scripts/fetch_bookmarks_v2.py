@@ -151,7 +151,14 @@ def fetch_bookmarks(config, processed_ids, max_bookmarks=None, from_date=None, t
     cutoff_date = max(cutoff_date, V2_START_DATE)
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True, executable_path='/opt/pw-browsers/chromium')
+        # 実行環境ごとにChromiumのパスを切り替える
+        # リモート環境ではプリインストール済みのChromiumを使い、
+        # 無ければPlaywright既定（ローカルの ~/.cache/ms-playwright/）に任せる
+        remote_chromium = '/opt/pw-browsers/chromium'
+        if os.path.exists(remote_chromium):
+            browser = p.chromium.launch(headless=True, executable_path=remote_chromium)
+        else:
+            browser = p.chromium.launch(headless=True)
         context = browser.new_context(
             storage_state=session_file,
             viewport={'width': 1280, 'height': 900},
