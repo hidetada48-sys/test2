@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>エージェント（サブエージェント）とは</title>
+<style>
+body{font-family:"Segoe UI","Hiragino Sans","Noto Sans JP",sans-serif;line-height:1.95;max-width:880px;margin:0 auto;padding:32px 20px;color:#222;background:#fafafa}
+h1{font-size:1.55em;border-bottom:3px solid #1d9bf0;padding-bottom:10px}
+h2{font-size:1.15em;margin-top:34px;border-left:6px solid #1d9bf0;padding-left:12px}
+h3{font-size:1.02em;margin-top:22px;color:#0d5c8f}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}
+th,td{border:1px solid #ddd;padding:9px 12px;text-align:left;font-size:.94em;vertical-align:top}
+th{background:#eef6fc}
+.box{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:14px 20px;margin:16px 0}
+.hint{background:#eefaf0;border:1px solid #9ed8ae;border-radius:8px;padding:14px 20px;margin:16px 0}
+.warn{background:#fff4e5;border:1px solid #ffb74d;border-radius:8px;padding:14px 20px;margin:16px 0}
+code{background:#f0f2f4;padding:2px 6px;border-radius:4px;font-size:.9em}
+pre{background:#2d2d2d;color:#f0f0f0;padding:14px 16px;border-radius:8px;overflow-x:auto;font-size:.85em;line-height:1.6}
+small{color:#666}
+.big{font-size:1.05em;font-weight:bold;color:#0d5c8f}
+</style>
+</head>
+<body>
+<h1>エージェント（サブエージェント）とは</h1>
+<p><small>推奨5番「レビュー用サブエージェントを『視点1つ』で作る」の補足説明／2026-08-31</small></p>
+
+<h2>ひとことで言うと</h2>
+<div class="hint">
+<p class="big">別室で働く、専門の担当者です。</p>
+<p>いまあなたが話している私（メインのClaude）とは<strong>別の会話</strong>を立ち上げて、そこで作業させ、<strong>結果だけを受け取る</strong>仕組みです。「サブエージェント」とも呼びます。</p>
+</div>
+
+<h2>会社にたとえると</h2>
+<table>
+<tr><th></th><th>メインのClaude</th><th>エージェント</th></tr>
+<tr><td>役割</td><td>あなたと直接やりとりする担当者</td><td>別室にいる専門スタッフ</td></tr>
+<tr><td>指示</td><td>あなたが直接出す</td><td>メインのClaudeが出す</td></tr>
+<tr><td>作業場所</td><td>この画面（会話）</td><td>別の会話（画面には出ない）</td></tr>
+<tr><td>あなたが見るもの</td><td>やりとり全部</td><td><strong>報告書だけ</strong></td></tr>
+</table>
+
+<h2>なぜ「別室」だと得なのか</h2>
+<div class="box">
+<h3>理由1：机の上が散らからない</h3>
+<p>Claudeには「一度に覚えていられる量」の上限があります（コンテキストと呼びます）。分厚い資料を<strong>この会話で</strong>読むと、その中身が以降のやりとり全部に載り続けて、机の上がどんどん埋まります。</p>
+<p>別室で読ませれば、戻ってくるのは<strong>要約された報告書だけ</strong>。机は散らかりません。</p>
+<p><small>※ 今回まさにこれが起きました。68KB・73KBのブックマークをこの会話で直接読んだので、その中身がずっと残っています。（推奨10番の話）</small></p>
+
+<h3>理由2：安い担当者に任せられる</h3>
+<p>「探す・読む・数える・整える」だけの雑用に、いちばん賢い（高い）モデルを使う必要はありません。エージェントごとに使うモデルを指定できるので、雑用は安いモデルに回せます。</p>
+
+<h3>理由3：視点を1つに絞れる</h3>
+<p>1人に「全部見て」と頼むと、どれも浅くなります。「事実の誤りだけ探して」と役割を1つに絞ると、その1点を深く掘ります。<strong>これが推奨5番の狙い</strong>です。</p>
+</div>
+
+<h2>実物：いまお持ちのエージェント3体</h2>
+<p>すでに <code>~/dotfiles/claude/agents/</code> に3体います。</p>
+<table>
+<tr><th>名前</th><th>役割</th></tr>
+<tr><td><code>doc-verifier</code></td><td>公式ドキュメントと記事を照合して裏取りする</td></tr>
+<tr><td><code>my-info-extractor</code></td><td>過去の会話ログから該当する発言を抜き出す</td></tr>
+<tr><td><code>seo-researcher</code></td><td>note記事用の競合・キーワード調査をする</td></tr>
+</table>
+<p><strong>3体とも「調べて持ってくる」係です。</strong>「持ってきたものにケチをつける」係がいません — これが推奨5番で指摘した穴です。</p>
+
+<h2>中身はマークダウン1枚だけ</h2>
+<p>特別なプログラムではありません。実物（<code>doc-verifier.md</code>）の冒頭はこうなっています。</p>
+<pre>---
+name: doc-verifier
+description: 公式ドキュメントとX記事・ブックマークの内容を照合して
+             正確性を検証する。「公式と記事を確認して」…と言われたときに使う。
+model: claude-sonnet-4-6
+disallowedTools: Write, Edit
+---
+
+（ここに「どう働いてほしいか」を日本語で書く）</pre>
+<table>
+<tr><th>項目</th><th>意味</th></tr>
+<tr><td><code>name</code></td><td>担当者の名前</td></tr>
+<tr><td><code>description</code></td><td><strong>いつ呼ぶか</strong>。これを読んでClaudeが自分で呼ぶか判断する</td></tr>
+<tr><td><code>model</code></td><td>どのモデルに担当させるか（安いモデルも指定できる）</td></tr>
+<tr><td><code>disallowedTools</code></td><td>禁止する道具。ここでは<strong>書き込み・編集を禁止</strong>＝読むだけ</td></tr>
+</table>
+<div class="warn">
+<p><strong>「読むだけ」にできるのが安全面のポイントです。</strong>下請けに勝手にファイルを書き換えられる心配がありません。推奨10番で「権限は読み取りのみ」と書いたのはこの設定のことです。</p>
+</div>
+
+<h2>スキルとの違い</h2>
+<table>
+<tr><th></th><th>スキル（Skill）</th><th>エージェント（Agent）</th></tr>
+<tr><td>正体</td><td>作業<strong>手順書</strong></td><td>別室の<strong>担当者</strong></td></tr>
+<tr><td>誰が読む</td><td>いまの私が読んで、この会話で実行</td><td>別の会話が立ち上がって実行</td></tr>
+<tr><td>会話の消費</td><td>手順も作業内容もこの会話に残る</td><td>報告書だけ返る</td></tr>
+<tr><td>例</td><td><code>x-bookmark-analyze</code>（今回使ったもの）</td><td><code>doc-verifier</code></td></tr>
+</table>
+<p><small>両方を組み合わせることもできます。実際 <code>note-article-generate</code> スキルは、途中で <code>seo-researcher</code> エージェントを呼ぶ作りになっています。</small></p>
+
+<h2>推奨5番でやろうとしていること</h2>
+<div class="hint">
+<p>4体目として <code>fact-checker</code>（事実と数字の誤りだけを探す。改善提案はしない）を追加する、という提案です。</p>
+<p><strong>作業はマークダウン1枚を <code>~/dotfiles/claude/agents/</code> に置くだけ</strong>で、5〜10分程度です。dotfiles配下なのでWindows PC（miryo）にも自動で反映されます。</p>
+</div>
+
+</body>
+</html>

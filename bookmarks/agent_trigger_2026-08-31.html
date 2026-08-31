@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>エージェントは自動で動くのか</title>
+<style>
+body{font-family:"Segoe UI","Hiragino Sans","Noto Sans JP",sans-serif;line-height:1.95;max-width:880px;margin:0 auto;padding:32px 20px;color:#222;background:#fafafa}
+h1{font-size:1.5em;border-bottom:3px solid #1d9bf0;padding-bottom:10px}
+h2{font-size:1.15em;margin-top:34px;border-left:6px solid #1d9bf0;padding-left:12px}
+table{border-collapse:collapse;width:100%;margin:12px 0;background:#fff}
+th,td{border:1px solid #ddd;padding:9px 12px;text-align:left;font-size:.93em;vertical-align:top}
+th{background:#eef6fc}
+.hint{background:#eefaf0;border:1px solid #9ed8ae;border-radius:8px;padding:14px 20px;margin:16px 0}
+.warn{background:#fff4e5;border:1px solid #ffb74d;border-radius:8px;padding:14px 20px;margin:16px 0}
+.box{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:14px 20px;margin:16px 0}
+code{background:#f0f2f4;padding:2px 6px;border-radius:4px;font-size:.9em}
+.big{font-size:1.06em;font-weight:bold;color:#0d5c8f}
+small{color:#666}
+.q{font-weight:bold;color:#c62828}
+</style>
+</head>
+<body>
+<h1>エージェントは自動で動くのか</h1>
+<p><small>2026-08-31／ご指摘への回答</small></p>
+
+<h2>結論</h2>
+<div class="hint">
+<p class="big">はい。勝手に動きます。それが本来の動作です。</p>
+<p>私が「試してみますか？」と聞いたのは、エージェントの仕様のせいではなく、<strong>いま動いているこのセッション側の制約</strong>のためです。ご指摘のとおりでした。</p>
+</div>
+
+<h2>自動で動く仕組み</h2>
+<div class="box">
+<p>Claude Codeはセッション開始時に、<code>~/.claude/agents/</code> にある全エージェントの <strong><code>name</code> と <code>description</code> だけ</strong>を読み込みます（本文は読みません）。</p>
+<p>そして作業中に、<strong>いまやろうとしていることが <code>description</code> と噛み合った瞬間</strong>、私が自分の判断で別室を立ち上げて呼びます。あなたが名前を出す必要はありません。</p>
+</div>
+
+<p>実際、先ほど作った時点でシステムから登録通知が来ています。<strong>すでに待機状態</strong>です。</p>
+
+<h2>今回 <code>equipment-history</code> が反応する言い回し</h2>
+<p><code>description</code> にこう書いてあります。</p>
+<table>
+<tr><th>書いた文言</th><th>これで拾える発言</th></tr>
+<tr><td>「前にもあったか」</td><td>「バーチカルZのこれ、前にもあったよな？」</td></tr>
+<tr><td>「似た事象を探して」</td><td>「似たトラブル探して」</td></tr>
+<tr><td>「過去の履歴を調べて」</td><td>「過去の履歴どうなってる？」</td></tr>
+<tr><td>「これは既存案件か新規か」</td><td>「これPRD起こす？既存に足す？」</td></tr>
+<tr><td>「新規PRDを起こす前の重複チェックにも<strong>必ず</strong>使う」</td><td>現場報告を新規登録しようとした場面全般</td></tr>
+</table>
+<div class="hint">
+<p><strong>だから、こう言うだけで自動で走ります。</strong></p>
+<p>「洗浄機バーチカルZが今朝も止まった。ログに追加しといて」<br>
+→ 新規登録の場面なので、私が先に <code>equipment-history</code> を呼んで重複チェックしてから登録します。</p>
+</div>
+
+<h2>ではなぜ私は確認を取ったのか</h2>
+<div class="warn">
+<p>いまのこのセッションは、<strong>「ユーザーが頼まない限りエージェントを起動しない」</strong>という設定で動いています。ブックマーク分析のような作業で、勝手に別室をいくつも立てて費用と時間を使わないための安全側の設定です。</p>
+<p><strong>これはセッション側の制約であって、エージェントの仕様ではありません。</strong>通常の <code>~/mino-sakura-hq</code> での作業では、この制約はかかりません。</p>
+</div>
+
+<h2>「自動」は保証ではない、という注意点</h2>
+<div class="box">
+<p>自動発動は<strong>私の判断</strong>なので、取りこぼすことがあります。落合式の記事にも「振り分けを判断しているのはAI自身なので取りこぼす」と書かれていました。</p>
+<table>
+<tr><th>確実性</th><th>やり方</th></tr>
+<tr><td>◎ 確実</td><td>名前を言う →「<code>equipment-history</code> で調べて」</td></tr>
+<tr><td>○ ほぼ自動</td><td><code>description</code> の言い回しに近い言い方をする</td></tr>
+<tr><td>◎ 確実（仕組み化）</td><td>スキル側の手順書に「必ず equipment-history を使う」と書く</td></tr>
+</table>
+<p><small>3番目は既に実績があります。<code>note-article-generate</code> スキルは、手順の中で <code>seo-researcher</code> エージェントを呼ぶよう書かれているので、毎回確実に走ります。</small></p>
+</div>
+
+<h2>もし工程として確実に走らせたいなら</h2>
+<p>現場報告を登録する手順が固まっているなら、<strong>スキル化して、その手順の1ステップに「equipment-history で重複チェック」を明記する</strong>のが一番確実です。ブックマーク分析の推奨16番「各工程に完了条件を明文化する」と同じ発想です。</p>
+<p>今日はまだそこまでせず、まず自動発動で使ってみて、取りこぼす場面があるかを見るのがよいと思います。</p>
+
+</body>
+</html>

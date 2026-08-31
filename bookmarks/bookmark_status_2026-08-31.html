@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ブックマーク処理状況 2026-08-31</title>
+<style>
+body{font-family:"Segoe UI","Hiragino Sans","Noto Sans JP",sans-serif;line-height:1.9;max-width:900px;margin:0 auto;padding:32px 20px;color:#222;background:#fafafa}
+h1{font-size:1.6em;border-bottom:3px solid #1d9bf0;padding-bottom:10px}
+h2{font-size:1.2em;margin-top:36px;border-left:6px solid #1d9bf0;padding-left:12px}
+table{border-collapse:collapse;width:100%;margin:14px 0;background:#fff}
+th,td{border:1px solid #ddd;padding:9px 12px;text-align:left;font-size:.95em}
+th{background:#eef6fc}
+.ok{color:#0a7d33;font-weight:bold}
+.ng{color:#c62828;font-weight:bold}
+.box{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:16px 20px;margin:16px 0}
+.total{background:#fff4e5;border:1px solid #ffb74d;border-radius:8px;padding:14px 20px;font-weight:bold}
+small{color:#666}
+</style>
+</head>
+<body>
+<h1>Xブックマーク 処理状況レポート</h1>
+<p><small>作成日：2026-08-31</small></p>
+
+<h2>結論</h2>
+<div class="box">
+<p><strong>「収集」は正常に動いています。溜まっているのは「分析」のほうです。</strong></p>
+<p>自動収集（週次タイマー）は毎週きちんと動いており、ファイルはすべて作成済み・Gitにコミット済みです。<br>
+一方、<strong>2026-07-25 を最後に「分析レポート」が1本も作られていません</strong>。その間に集まった <span class="ng">5ファイル／34件</span> が未分析のまま残っています。</p>
+</div>
+
+<h2>1. 未分析のブックマーク（溜まっている分）</h2>
+<table>
+<tr><th>ファイル</th><th>期間</th><th>件数</th><th>分析</th></tr>
+<tr><td>bookmarks_0722-0722.md</td><td>7/22</td><td>1件</td><td class="ng">未分析</td></tr>
+<tr><td>bookmarks_0801-0810.md</td><td>8/01〜8/10</td><td>3件</td><td class="ng">未分析</td></tr>
+<tr><td>bookmarks_0810-0810.md</td><td>8/10</td><td>1件</td><td class="ng">未分析</td></tr>
+<tr><td>bookmarks_0811-0818.md</td><td>8/11〜8/18</td><td>16件</td><td class="ng">未分析</td></tr>
+<tr><td>bookmarks_0817-0824.md</td><td>8/17〜8/24</td><td>13件</td><td class="ng">未分析</td></tr>
+</table>
+<p class="total">合計 34件が未分析（約5週間分）</p>
+<p><small>※ 記憶（メモ）には「0710-0720 の5件」までしか分析履歴が記録されておらず、実態とも一致しています。7/25 以降は分析フェーズが止まったままです。</small></p>
+
+<h2>2. 自動収集の状況（こちらは正常）</h2>
+<table>
+<tr><th>項目</th><th>状態</th></tr>
+<tr><td>systemdタイマー</td><td class="ok">稼働中</td></tr>
+<tr><td>前回実行</td><td>2026-08-25 18:24（新着0件で正常終了）</td></tr>
+<tr><td>次回実行</td><td>2026-09-01 00:00 JST（約3時間45分後）</td></tr>
+<tr><td>サービス状態</td><td class="ok">inactive (dead)＝待機中の正常状態</td></tr>
+<tr><td>インデックスファイル</td><td class="ok">8月分もすべて作成済み</td></tr>
+<tr><td>Git</td><td class="ok">未コミット・未プッシュなし（クリーン）</td></tr>
+</table>
+<p><small>「inactive (dead)」は故障ではなく、次の実行時刻まで待っている通常の状態です。</small></p>
+
+<h2>3. おすすめの対応</h2>
+<div class="box">
+<p><strong>案A（推奨）：8月分をまとめて分析する</strong><br>
+件数の多い <code>0811-0818</code>（16件）と <code>0817-0824</code>（13件）を中心に、8月分5ファイルを一括で分析レポート化します。7/22 の1件も一緒に拾えます。</p>
+<p><strong>案B：直近2ファイルだけ分析する</strong><br>
+8/11以降の29件に絞り、古い少数分（7/22・8/01〜8/10 の計5件）は見送ります。処理は軽くなります。</p>
+<p><strong>案C：9/1 の自動収集を待ってから、まとめて分析する</strong><br>
+約3時間45分後に新しい分が入るので、それも含めて一度に片付けます。</p>
+</div>
+
+</body>
+</html>

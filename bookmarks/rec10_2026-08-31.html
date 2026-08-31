@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>推奨10番：雑用は読み取り専用の下請けへ</title>
+<style>
+body{font-family:"Segoe UI","Hiragino Sans","Noto Sans JP",sans-serif;line-height:1.95;max-width:900px;margin:0 auto;padding:32px 20px;color:#222;background:#fafafa}
+h1{font-size:1.45em;border-bottom:3px solid #1d9bf0;padding-bottom:10px}
+h2{font-size:1.15em;margin-top:36px;border-left:6px solid #1d9bf0;padding-left:12px}
+h3{font-size:1em;margin-top:20px;color:#0d5c8f}
+table{border-collapse:collapse;width:100%;margin:12px 0;background:#fff}
+th,td{border:1px solid #ddd;padding:9px 12px;text-align:left;font-size:.93em;vertical-align:top}
+th{background:#eef6fc}
+.hint{background:#eefaf0;border:1px solid #9ed8ae;border-radius:8px;padding:14px 20px;margin:16px 0}
+.warn{background:#fff4e5;border:1px solid #ffb74d;border-radius:8px;padding:14px 20px;margin:16px 0}
+.bad{background:#fdecec;border:1px solid #e59a9a;border-radius:8px;padding:14px 20px;margin:16px 0}
+.box{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:14px 20px;margin:16px 0}
+code{background:#f0f2f4;padding:2px 6px;border-radius:4px;font-size:.9em}
+pre{background:#2d2d2d;color:#f0f0f0;padding:14px 16px;border-radius:8px;overflow-x:auto;font-size:.84em;line-height:1.6}
+.big{font-size:1.05em;font-weight:bold;color:#0d5c8f}
+small{color:#666}
+.ok{color:#0a7d33;font-weight:bold}
+.ng{color:#c62828;font-weight:bold}
+</style>
+</head>
+<body>
+<h1>推奨10番：雑用は読み取り専用の下請けエージェントへ</h1>
+<p><small>2026-08-31／元記事：0811-0818 #7（Haiku並列振り分け）</small></p>
+
+<h2>何を言っているのか</h2>
+<div class="hint">
+<p class="big">賢いモデルは指揮に専念し、「探す・読む・数える・整える」は安いモデルの部下に渡す。</p>
+<p>Anthropicが Haiku 4.5 の発表時に提唱した形です。ユーザーがモデルを切り替える必要はなく、Claudeが自分で振り分けます。<strong>モデルを選び直すのではなく、役割を分ける</strong>のがポイントです。</p>
+</div>
+
+<h2>効果は2つ。本命は2つ目</h2>
+<div class="box">
+<h3>効果①：単価が下がる（これは分かりやすい方）</h3>
+<p>記事によると Haiku は、実務的なコーディング課題のベンチマークで73.3%、速度は上位モデル比で最大4〜5倍、<strong>価格は最上位の10分の1</strong>。品質差の出ない作業なら、これで十分です。</p>
+
+<h3>効果②：読んだ中身が指揮者の会話に残らない（<span class="ng">こちらが本命</span>）</h3>
+<p>指揮者が自分で大量に読み込むと、その中身は<strong>以降のやりとり全部に載り続けます</strong>。序盤にちょっと調べただけのつもりが、後半の往復すべてに上乗せされている。長い作業ほど効いてきます。</p>
+<p>部下に出すと、返ってくるのは<strong>結果だけ</strong>。これが起きません。</p>
+</div>
+
+<div class="bad">
+<h3>今日、実際にこれが起きました</h3>
+<p>ブックマーク分析で、<code>bookmarks_0811-0818.md</code>（68KB）と <code>bookmarks_0817-0824.md</code>（73KB）を<strong>この会話で直接読みました</strong>。その中身は、いまこうしてやりとりしている間もずっと載り続けています。</p>
+<p>下請けに「19件それぞれの要点を10行でまとめて」と出していれば、返ってくるのは数KBで済みました。</p>
+</div>
+
+<h2>あなたの業務で、下請けに出せる仕事</h2>
+<p><code>~/mino-sakura-hq</code> は全体36MB、うち <code>production/data/</code> だけで3.8MB、<code>knowledge/</code> の業界調査QAが208KBあります。<strong>読む量が多い作業が業務の中心にあります。</strong></p>
+
+<table>
+<tr><th>実際にありそうな依頼</th><th>下請けの仕事</th><th>読む量</th></tr>
+<tr><td>「薬品R08年度の4〜8月、原単位を月別に出して」</td><td>xlsを開いて該当月を拾い、月別に並べる</td><td>203KB</td></tr>
+<tr><td>「原料日誌CSVから8月の入荷量を拾って」</td><td>33.8KBのCSVから該当行を抽出して合計</td><td>34KB</td></tr>
+<tr><td>「値上げ18社で、決着価格が見積もりを下回った社は？」</td><td>xlsxとhtmlを突き合わせて社名を列挙</td><td>59KB</td></tr>
+<tr><td>「週次12本から PRD-013 の言及を全部拾って」</td><td>12ファイルを走査して該当箇所を抜く</td><td>72KB</td></tr>
+<tr><td>「業界調査QAで『A重油』が出てくる箇所は？」</td><td>6本を横断して該当段落を抜く</td><td>208KB</td></tr>
+<tr><td>「電気代.xlsから今年度の月別推移を」</td><td>該当シートを読んで数値だけ返す</td><td>459KB</td></tr>
+</table>
+
+<div class="warn">
+<h3>逆に、渡してはいけない仕事</h3>
+<p>記事にはっきり書かれています。<strong>「探す・読む・数える・整える」だけを渡し、判断と文章づくりは渡さない。」</strong></p>
+<table>
+<tr><th>渡さない</th><th>理由</th></tr>
+<tr><td>専務への報告文・週次ダイジェストの執筆</td><td>文章づくりは判断が入る</td></tr>
+<tr><td>値上げの方針決定、投資判断（PRD-001の300万・PRD-002のポンプ本体537,000円）</td><td>経営判断</td></tr>
+<tr><td>労災の「発生状況」欄の文章化</td><td>書式ルールと事実認定が絡む</td></tr>
+<tr><td>設備トラブルの原因推定</td><td>現場知識と文脈が要る</td></tr>
+</table>
+<p><small>ここを緩くすると何でも安いモデルに流れて、品質が落ちます。</small></p>
+</div>
+
+<h2>すでに1体できています</h2>
+<div class="hint">
+<p>今日作った <code>equipment-history</code> は、実はこの形の一種です。</p>
+<ul>
+<li>やることは「探す・読む・要約する」だけ</li>
+<li>原因推定・対策提案は禁止（＝判断を渡していない）</li>
+<li><code>disallowedTools: Write, Edit</code> ＝ 読み取り専用</li>
+</ul>
+<p>違いは<strong>用途が設備履歴に限定されている</strong>こと。推奨10番が言っているのは、この汎用版を1体持つことです。</p>
+</div>
+
+<h2>作るなら：<code>bulk-reader</code></h2>
+<div class="box">
+<pre>---
+name: bulk-reader
+description: 大きなファイル・多数のファイルから必要な部分だけを
+             探して抜き出す。「集計して」「拾って」「一覧にして」
+             「全部から探して」「突き合わせて」と言われたとき、
+             対象が複数ファイルまたは数十KB以上なら必ず使う。
+             判断・原因推定・文章作成には使わない。
+model: claude-haiku-4-5-20251001
+disallowedTools: Write, Edit, NotebookEdit
+---
+
+あなたは資料の抽出・集計担当です。
+
+## やること（この4つだけ）
+探す／読む／数える／整える
+
+## やらないこと
+- 原因の推定、対策の提案、方針の判断
+- 報告文・説明文の作成（箇条書きと表だけで返す）
+- ファイルの書き換え（読み取り専用）
+- 見つからないものを推測で埋める → 「該当なし」と書く
+
+## 数字を扱うときの必須ルール
+- 必ず元データから計算する。表の記載値を鵜呑みにしない
+- 合計・平均は2回計算して一致を確認する
+- 元の単位（税抜/税込・kg/t）を必ず添える
+- 端数処理をした場合はその旨を書く
+
+## 出力
+表または箇条書きのみ。読んだ本文は返さない。
+最後に「読んだファイルと行数」を1行で添える。</pre>
+</div>
+
+<h2>元記事にあった「番犬」について</h2>
+<div class="box">
+<p>記事では、部下エージェントとセットで<strong>番犬</strong>を入れています。送信のたびに裏で照合し、噛み合っていないときだけ「モデルを上げませんか」「これは部下に投げませんか」と言ってくる役です。</p>
+<p>理由は、<strong>振り分けを判断しているのはClaude自身なので取りこぼすから</strong>。番犬がその抜けを拾います。</p>
+<p>あなたの環境なら <code>UserPromptSubmit</code> フックで実装できますが、<strong>まずは部下1体だけ入れて、取りこぼしが実際に起きるか見てからで十分</strong>だと思います。いきなり2つ入れると、どちらが効いたか分からなくなります。</p>
+</div>
+
+<h2>やるとしたら</h2>
+<div class="hint">
+<p><code>~/dotfiles/claude/agents/bulk-reader.md</code> を1枚置くだけです。<code>equipment-history</code> と同じ手順で5分ほど。</p>
+<p>ひとつ判断が要ります。<strong>モデルをHaikuにするか、Sonnetにするか。</strong></p>
+<table>
+<tr><th></th><th>Haiku 4.5</th><th>Sonnet 4.6</th></tr>
+<tr><td>単価</td><td>安い（最上位の約1/10）</td><td>中</td></tr>
+<tr><td>速度</td><td>速い（4〜5倍）</td><td>中</td></tr>
+<tr><td>向く仕事</td><td>抽出・集計・突合</td><td>やや解釈が要る抽出</td></tr>
+<tr><td>懸念</td><td>xls/CSVの表構造の読み違い</td><td>コスト削減効果が薄れる</td></tr>
+</table>
+<p><strong>おすすめはHaikuで作って、実際に薬品xlsあたりで試すこと。</strong>読み違えるようならSonnetに上げる、という順が確実です。既存3体は全てSonnetなので、Haikuの実力を1体で見ておく価値もあります。</p>
+</div>
+
+</body>
+</html>

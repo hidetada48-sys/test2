@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>エージェント活用例（美濃さくら業務）</title>
+<style>
+body{font-family:"Segoe UI","Hiragino Sans","Noto Sans JP",sans-serif;line-height:1.95;max-width:900px;margin:0 auto;padding:32px 20px;color:#222;background:#fafafa}
+h1{font-size:1.5em;border-bottom:3px solid #1d9bf0;padding-bottom:10px}
+h2{font-size:1.15em;margin-top:38px;border-left:6px solid #1d9bf0;padding-left:12px}
+h3{font-size:1em;margin-top:20px;color:#0d5c8f}
+table{border-collapse:collapse;width:100%;margin:12px 0;background:#fff}
+th,td{border:1px solid #ddd;padding:9px 12px;text-align:left;font-size:.93em;vertical-align:top}
+th{background:#eef6fc;white-space:nowrap}
+.card{background:#fff;border:1px solid #d8d8d8;border-radius:10px;padding:18px 22px;margin:20px 0;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.card h3{margin-top:0;font-size:1.12em;color:#0d5c8f}
+.tag{display:inline-block;background:#1d9bf0;color:#fff;font-size:.75em;padding:2px 9px;border-radius:11px;margin-left:8px;vertical-align:middle}
+.hint{background:#eefaf0;border:1px solid #9ed8ae;border-radius:8px;padding:12px 18px;margin:14px 0}
+.warn{background:#fff4e5;border:1px solid #ffb74d;border-radius:8px;padding:12px 18px;margin:14px 0}
+.flow{background:#f5f7fa;border-left:4px solid #8fa6bd;padding:10px 16px;margin:12px 0;font-size:.92em}
+code{background:#f0f2f4;padding:2px 6px;border-radius:4px;font-size:.9em}
+pre{background:#2d2d2d;color:#f0f0f0;padding:14px 16px;border-radius:8px;overflow-x:auto;font-size:.83em;line-height:1.6}
+small{color:#666}
+.ret{color:#0a7d33;font-weight:bold}
+</style>
+</head>
+<body>
+<h1>エージェントは、あなたの業務で何をするのか</h1>
+<p><small>推奨5番の具体例／実際の <code>~/mino-sakura-hq</code> の中身に即して作成／2026-08-31</small></p>
+
+<div class="hint">
+<p>あなたの業務には、<strong>「大量に読んで、少しだけ返す」作業</strong>が大量にあります。設備トラブル台帳、労災の書式、値上げの対比表、業界調査QA（30KB×6本）、週次ダイジェスト12本。<br>
+<strong>これが全部、エージェント向きの仕事です。</strong>いま私が読むと中身がこの会話に残り続けますが、別室で読ませれば結論だけ返ってきます。</p>
+</div>
+
+<h2>例1：労災書類の突合役<span class="tag">読むだけ</span></h2>
+<div class="card">
+<h3><code>rousai-checker</code> — 台帳と下書きの食い違いだけを探す</h3>
+<p><strong>いつ呼ぶか：</strong>労災5号などの下書きを作った直後。</p>
+<div class="flow">
+<strong>実例：</strong>HR-004（山口和弘 #11／2026-08-19 発生／脱墨剤の希釈調整中に薬液が左目に／第一発見者 柳原圭佑 #15）の5号下書きを作成した場面。
+</div>
+<p><strong>やること：</strong><code>hr/労災/書式/</code> と労災台帳と下書きを突き合わせ、<strong>ズレだけを列挙</strong>する。</p>
+<ul>
+<li>発生日・受診日が台帳と下書きで一致しているか</li>
+<li>被災者番号（#11）と氏名の組み合わせが台帳どおりか</li>
+<li>第一発見者の記載漏れがないか</li>
+<li>「発生状況」欄が、決めた方式（<strong>そのまま書き写せる文章</strong>／箇条書きにしない）になっているか</li>
+</ul>
+<p class="ret">返ってくるもの：「3件のズレ。①受診日が台帳8/19・下書き8/20 ②…」だけ。書式PDFの中身は返さない。</p>
+<div class="warn"><strong>ここが肝：</strong>改善提案はさせません。「誤りを探す」と「直し方を考える」を同じ担当に頼むと、誤りを見つける目が甘くなります（推奨5番・視点の分離）。</div>
+</div>
+
+<h2>例2：値上げ対比表の再計算役<span class="tag">安いモデル向き</span></h2>
+<div class="card">
+<h3><code>price-recalc</code> — 数字を元データから計算し直すだけ</h3>
+<p><strong>いつ呼ぶか：</strong>価格の対比表や集計を専務が確認する前。</p>
+<div class="flow">
+<strong>実例：</strong><code>clients/値上げ施策/</code> には <strong>「決着価格対比表_2026-08-01実施_<u>全18社</u>」</strong>と<strong>「見積もり対比_<u>全17社</u>_2026-08-01」</strong>が並んでいます。社数が1社違う。意図的な差（見積もり時点で1社未提示）かもしれませんが、<strong>この種の「気づかないと最後まで通ってしまう差」を拾うのがこの役の仕事</strong>です。
+</div>
+<p><strong>やること：</strong>xlsx・htmlを開いて、合計・平均・改定率を<strong>元の行データから計算し直し</strong>、表の記載値と突き合わせる。</p>
+<p class="ret">返ってくるもの：一致した項目は「一致」の1行だけ。不一致だけ社名と両方の数字を出す。</p>
+<div class="hint"><strong>なぜ安いモデルでいいか：</strong>「読む・数える・突き合わせる」だけで判断が要りません。ここに最上位モデルを使うのは、電卓を叩く仕事に部長を呼ぶようなものです（推奨10番）。</div>
+</div>
+
+<h2>例3：設備トラブルの履歴掘り起こし役<span class="tag">大量横断</span></h2>
+<div class="card">
+<h3><code>equipment-history</code> — 過去の似た事象だけを探して日付と要約を返す</h3>
+<p><strong>いつ呼ぶか：</strong>現場から新しい不具合が上がってきたとき。</p>
+<div class="flow">
+<strong>実例：</strong>PRD-013（ニーダーのシリンダーへの原料巻き付き）は、調べた結果 <strong>2026-07-03 の同種事象と同じ案件として統合</strong>されました。この「前にもあったはず」を人が思い出す作業を、そのまま渡せます。
+</div>
+<p><strong>やること：</strong><code>production/</code> の台帳と <code>reviews/</code> の週次12本を横断し、該当しそうな記録の<strong>日付・案件番号・1行要約だけ</strong>返す。</p>
+<p class="ret">返ってくるもの：「3件該当。2026-07-03 シリンダープレス巻き付き（PRD-013に統合済）／…」</p>
+<div class="warn"><strong>これを今の会話でやると：</strong>台帳9.5KB＋SUMMARY 27KB＋logs 17本＋週次12本を読み込むことになり、その中身が以降のやりとり全部に載り続けます。今回のブックマーク分析で実際に起きたことと同じです。</div>
+</div>
+
+<h2>例4：週次ダイジェストの抜け探し役<span class="tag">批判専門</span></h2>
+<div class="card">
+<h3><code>weekly-critic</code> — 「決まったように見えるが決まっていない」だけを探す</h3>
+<p><strong>いつ呼ぶか：</strong>週次ダイジェストを書き上げた直後、専務に出す前。</p>
+<div class="flow">
+<strong>実例：</strong>8/24週のダイジェストにこう書かれています。<br>
+「配管更新だけでは戻らず、<strong>ポンプ本体の交換は不可避の公算</strong>となった」<br>
+—— <em>公算</em>であって決定ではない。では<strong>誰が・いつまでに決めるのか</strong>は書かれていません。批判役はここだけを拾います。
+</div>
+<p><strong>探させる4点：</strong></p>
+<table>
+<tr><th>観点</th><th>8/24週での該当例</th></tr>
+<tr><td>決まっていないのに決まったように見える</td><td>ポンプ本体交換「不可避の公算」— 決裁も予算も未記載</td></tr>
+<tr><td>担当者が不明</td><td>PRD-014（スラッジ流出）— 相談役へ報告後の恒久対策の担当</td></tr>
+<tr><td>期限が不明</td><td>PRD-013 は 9/7 タイゼン来社と明記あり ＝ <strong>これは良い記載</strong></td></tr>
+<tr><td>環境・安全リスクの扱い</td><td>PRD-014 は「環境リスクが高い」と書きつつ次アクションなし</td></tr>
+</table>
+<p class="ret">返ってくるもの：指摘リストのみ。文章の書き直しはしない。</p>
+<div class="hint">これは推奨6番「反対意見だけを担当するAIを1体入れる」の実装です。落合式の議事録3分割（事実／タスク／批判）の“批判”に当たります。</div>
+</div>
+
+<h2>例5：業界調査の裏取り役<span class="tag">既存3体の穴埋め</span></h2>
+<div class="card">
+<h3><code>gyokai-critic</code> — 調査QAの結論を疑うだけ</h3>
+<p><strong>いつ呼ぶか：</strong>週初回フローで業界レポートを生成した後。</p>
+<div class="flow">
+<strong>実例：</strong><code>knowledge/</code> の業界調査QA（古紙・廃水処理・製紙スラッジ・生産技術・製品／各30KB前後）は<strong>2026年5月時点の調査</strong>です。3か月経過しており、A重油コスト構造など相場前提が動いている可能性があります。
+</div>
+<p><strong>探させるもの：</strong>出典のない断定／古いデータを現在形で書いている箇所／都合のよい解釈／自社に当てはまらない一般論。</p>
+<p class="ret">返ってくるもの：疑わしい箇所の引用と理由だけ。30KB×6本は返さない。</p>
+<div class="warn"><strong>いまの3体では埋まらない穴：</strong><code>doc-verifier</code> は公式ドキュメント照合、<code>seo-researcher</code> はnote記事用、<code>my-info-extractor</code> は会話ログ抽出。<strong>業務データを疑う役がいません。</strong></div>
+</div>
+
+<h2>まとめ：どれを最初に作るか</h2>
+<table>
+<tr><th>候補</th><th>効く場面</th><th>頻度</th><th>おすすめ度</th></tr>
+<tr><td><code>weekly-critic</code></td><td>週次ダイジェストを専務に出す前</td><td>毎週</td><td><strong>◎ 最初の1体</strong></td></tr>
+<tr><td><code>rousai-checker</code></td><td>労災・社保の書類作成時</td><td>都度（HR-004まで4件）</td><td>○</td></tr>
+<tr><td><code>equipment-history</code></td><td>新規トラブル登録時</td><td>月数回</td><td>○</td></tr>
+<tr><td><code>price-recalc</code></td><td>値上げ・価格の集計時</td><td>年数回だが金額が大きい</td><td>△（頻度低）</td></tr>
+<tr><td><code>gyokai-critic</code></td><td>業界レポート生成後</td><td>週次</td><td>△（調査更新時に）</td></tr>
+</table>
+<div class="hint">
+<p><strong><code>weekly-critic</code> を推します。</strong>毎週必ず発生し、見落とすと「決まっていないことが決まったことになる」という実害が出ます。しかも週次ダイジェストは既に定型なので、チェック観点を固定しやすい。</p>
+<p>作るのは <code>~/dotfiles/claude/agents/weekly-critic.md</code> の<strong>マークダウン1枚だけ</strong>。dotfiles配下なのでWindows PC（miryo）にも自動で反映されます。</p>
+</div>
+
+<h2>参考：中身のイメージ</h2>
+<pre>---
+name: weekly-critic
+description: 週次ダイジェストの下書きから「決まっていないのに決まったように
+             見える事項・担当者不明・期限不明・リスクの放置」だけを探す。
+             週次レポートを専務に出す前の確認に使う。
+model: claude-sonnet-4-6
+disallowedTools: Write, Edit
+---
+
+あなたは週次ダイジェストの批判担当です。
+指摘だけを行い、文章の書き直しや改善案の提示はしません。
+
+## 探すもの（この4つだけ）
+1. 決まっていないのに決まったように読める記述
+2. 担当者が書かれていない対応事項
+3. 期限が書かれていない対応事項
+4. リスクと書きながら次のアクションがない項目
+
+## 出力
+該当箇所の引用 → なぜ問題か → 確認すべき相手（1行）
+該当なしの観点は「該当なし」とだけ書く。
+</pre>
+
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ブックマーク分析レポート 2026-08-31</title>
+<style>
+  :root{--p1:#e6462e;--p2:#e08a1e;--p3:#3a7bd5;--bg:#f7f7f5;--card:#fff;--ink:#2b2b2b;--muted:#777;--line:#e5e2dc;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);line-height:1.75;
+    font-family:system-ui,-apple-system,"Segoe UI","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;}
+  .wrap{max-width:860px;margin:0 auto;padding:32px 20px 80px;}
+  h1{font-size:1.6rem;margin:0 0 6px;border-bottom:3px solid var(--ink);padding-bottom:14px;}
+  h2{font-size:1.2rem;margin:34px 0 12px;padding-left:12px;border-left:5px solid var(--ink);}
+  h3{font-size:1rem;margin:20px 0 8px;color:#444;}
+  .meta{color:var(--muted);font-size:.9rem;}
+  .lead{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:14px 0;}
+  ul.items{padding-left:0;list-style:none;margin:0;}
+  li.item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0;}
+  .num{font-weight:700;color:var(--muted);margin-right:6px;}
+  .tag{display:inline-block;color:#fff;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:999px;margin-right:8px;}
+  .p1{background:var(--p1);} .p2{background:var(--p2);} .p3{background:var(--p3);}
+  a{color:var(--p3);}
+  code{background:#eee;padding:1px 5px;border-radius:4px;font-size:.9em;}
+  footer{margin-top:40px;color:var(--muted);font-size:.82rem;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>ブックマーク分析レポート</h1>
+<div class="meta"><strong>作成日：2026-08-31</strong></div>
+<div class="meta"><strong>元データ：bookmarks_0722-0722 / 0801-0810 / 0810-0810 / 0811-0818 / 0817-0824（計19件）</strong></div>
+<p class="lead">&gt; 5ファイル分の未分析ブックマークをまとめて分析。7/25以降の約5週間分。</p>
+<p class="lead">&gt; 19件中12件がClaude Code関連で、テーマは「マルチエージェント設計」と「安全・権限設計」に強く偏っている。</p>
+<h2>1. 権限モードと安全設計</h2>
+<p class="lead">今期最大の変化。8/14からPro/Max/TeamでAutoモードが既定の許可モードになった。分類器が危険コマンドの89%を検出（手動承認は14%）。同時に、落合式・24時間エージェント設計の両記事が「自律化するのは工程であって権限ではない」と繰り返している。</p>
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+<li class="item"><span class="num">1.</span><strong><span class="tag p1">P1</span> <code>defaultMode</code> の設定を見直す</strong>：現在 <code>~/dotfiles/claude/settings.json</code> に <code>&quot;defaultMode&quot;: &quot;acceptEdits&quot;</code> をピン留めしている。公式告知は「すでにデフォルトモードを設定済みの場合はそのまま」なので、<strong>この設定がある限りAutoモードの分類器による危険コマンド検出は効いていない可能性が高い</strong>。ピン留めを外してAutoに委ねるか、acceptEditsを維持するかを決める。値の正確な仕様は公式ドキュメントで裏取りしてから変更すること（CLAUDE.mdの「公式確認してから実装」ルール）。→ <code>doc-verifier</code> エージェントで確認するのが早い。（元記事：0811-0818 #5）</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">2.</span><strong><span class="tag p2">P2</span> denyリストを「消す・送る・払う・本番変更」の4カテゴリで棚卸しする</strong>：現在のdenyは <code>rm -rf</code> / <code>git push --force</code> / <code>.env</code> の読み書きの4件のみ。落合式記事の線引き（AIに任せるのは「考える・作る・テストする」、人間が承認するのは「消す・送る・払う・本番を変える」）に照らすと、<strong>「送る」（外部送信・SNS投稿）と「払う」が未カバー</strong>。例えばGoogle Drive アップロードスクリプトやDiscord送信系は無条件で通る状態。（元記事：0811-0818 #2）</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">3.</span><strong><span class="tag p2">P2</span> 「文章での禁止」を「仕組みでの禁止」に格上げする</strong>：CLAUDE.mdに書いたルールは方針であって強制力がない、という指摘。現環境ではすでにWebFetch禁止をPreToolUseフックで <code>exit 2</code> させており、この形が正解。同じ発想で、まだ文章ルールのままの項目（例：「git pull前にgit statusを確認する」）をフック化できないか検討する。（元記事：0811-0818 #9）</li>
+</ul>
+<h3>📚 学習</h3>
+<ul class="items">
+<li class="item"><span class="num">4.</span><strong><span class="tag p2">P2</span> 「自律化するのは工程であって権限ではない」</strong>：寝ている間に動かす＝確認を全部オフ、ではない。落合陽一の公開環境も既定は毎回確認。自動承認モードは上級者向け・自己責任と明記されている。安全な半自動を積み上げる方が結果的に早い、という考え方。（元記事：0811-0818 #2）</li>
+</ul>
+<h2>2. マルチエージェント設計・視点分離</h2>
+<p class="lead">19件中5件がこのテーマ。今期の主軸。核心は「1体に全部見せない。1体には1つの視点だけ渡す」。</p>
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+<li class="item"><span class="num">5.</span><strong><span class="tag p1">P1</span> レビュー用サブエージェントを「視点1つ」で作る</strong>：現在のエージェントは <code>doc-verifier</code> / <code>my-info-extractor</code> / <code>seo-researcher</code> の3体で、いずれも調査・抽出系。<strong>批判・検証担当がいない</strong>。まず1体だけ、<code>fact-checker</code>（事実と数字の誤りだけを探す。改善提案はしない）を <code>~/dotfiles/claude/agents/</code> に追加する。公式推奨は3〜5体からで、「3体の集中したエージェントの方が5体の曖昧なエージェントより有効」。（元記事：0811-0818 #2）</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">6.</span><strong><span class="tag p2">P2</span> 「反対意見だけを担当するAI」を1体入れる</strong>：賛成・反対・審判の3体構成。実施済みリストの未実施項目「対立検証パターン（Opponent Processor）」がまさにこれ。例えば社会保険の手続き定義ファイル（<code>hr-shahou-register</code>）を作るときに、「この定義で漏れる申請パターンだけを探す」役を立てると、web調査の取りこぼしが拾える。（元記事：0811-0818 #2、0817-0824 #1）</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">7.</span><strong><span class="tag p2">P2</span> レビュー結果を「そのまま適用させない」一文を入れる</strong>：指摘を全部そのまま直させると、矛盾する修正が入って前より悪くなる。「重複・誤検出・矛盾を整理してから修正し、修正後に再検証する」を必ず挟む。（元記事：0811-0818 #2）</li>
+</ul>
+<h3>📚 学習</h3>
+<ul class="items">
+<li class="item"><span class="num">8.</span><strong><span class="tag p2">P2</span> 「一致ではなくズレを見る」</strong>：複数AIを使う目的は多数決ではない。5体中1体だけが別の文献を持ってきた、前提そのものを疑った——その<strong>ズレが新しい着想の起点</strong>になる。逆に5体が同じことを言っても、同じ二次情報を参照しているだけの可能性がある。（元記事：0817-0824 #1）</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">9.</span><strong><span class="tag p3">P3</span> エージェントを増やすコストも知っておく</strong>：引き継ぎ・状態同期・重複作業・コンテキスト複製・権限管理・実行コストが増える。前工程の結果を待つ仕事を無理に分けると引き継ぎコストの方が大きい。独立して並列化できる仕事だけ分ける。（元記事：0811-0818 #9）</li>
+</ul>
+<h2>3. コスト・トークン最適化</h2>
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+<li class="item"><span class="num">10.</span><strong><span class="tag p1">P1</span> 「雑用は読み取り専用の下請けエージェントへ」を導入する</strong>：Anthropicが提唱する「賢いモデルが指揮し、雑用は複数のHaikuに並列委任」の形。効果は2つあり、<strong>本命は2つ目</strong>——下請けが読んだ中身は指揮者の会話に残らないので、長い作業ほどトークンが膨らまない。今回の分析作業がまさに該当した（68KB・73KBのファイルを本体で読み込んだ）。<code>bulk-reader</code>（探す・読む・数える・整えるだけ。判断と文章づくりはしない。権限は読み取りのみ）を追加すると効く。（元記事：0811-0818 #7）</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">11.</span><strong><span class="tag p3">P3</span> 週次制限50%増は本日8/31で期限</strong>：8月31日まで延長されていた週次利用制限の50%増加が今日で切れる。恒久化は望まれているが容量逼迫の可能性ありと公式が明言。<strong>9/1以降は使用量の感覚が変わる前提で作業計画を立てる</strong>。（元記事：0817-0824 #2）</li>
+</ul>
+<h3>📚 学習</h3>
+<ul class="items">
+<li class="item"><span class="num">12.</span><strong><span class="tag p3">P3</span> Sonnet 5の導入価格が恒久化</strong>：入力100万トークン2ドル／出力10ドルが8月末以降も維持。Haikuは最上位の10分の1・速度4〜5倍・実務コーディングベンチ73.3%。モデル使い分けの単価感として持っておく。（元記事：0801-0810 #1、0811-0818 #7）</li>
+</ul>
+<h2>4. 長時間・自律運用のハーネス設計</h2>
+<p class="lead">このテーマだけで元記事2本（合計3万字超）。現環境はすでに systemd タイマーで週次ブックマーク収集を無人運用しているので、<strong>そのまま適用できる指摘が多い</strong>。</p>
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+<li class="item"><span class="num">13.</span><strong><span class="tag p1">P1</span> 状態を会話ではなくファイルへ持たせる</strong>：長時間運用でセッションが落ちることを前提にし、<code>job_id</code> / <code>status</code> / <code>current_step</code> / <code>completed_steps</code> / <code>retry_count</code> / <code>last_error</code> をJSONで外部保存する。<strong>現環境の弱点がここ</strong>：<code>x-bookmark-weekly</code> は失敗すると最初からやり直しで、どこまで終わったかが残らない。5月のタイムアウト失敗（status=143）も、状態ファイルがあれば途中から再開できた。（元記事：0811-0818 #9）</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">14.</span><strong><span class="tag p2">P2</span> 冪等性キーで二重実行を防ぐ</strong>：<code>bookmark-weekly:2026-W35</code> のようなキーを持たせ、completedなら何もしない。現在の重複防止は「処理済み235件をスキップ」というアプリ内ロジックに依存していて、ジョブ単位の重複防止はない。Google Driveアップロードなど副作用のある処理には必須。（元記事：0811-0818 #9）</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">15.</span><strong><span class="tag p2">P2</span> リトライを「種類×上限」で設計し直す</strong>：現在の systemd 設定は <code>Restart=on-failure</code> / <code>RestartSec=600</code> / <code>StartLimitBurst=3</code> で回数上限はあるが、<strong>エラーの種類を区別していない</strong>。認証エラー・権限不足・入力不備は再試行しても無駄なので即停止すべき。再試行してよいのは通信エラー・レート制限・タイムアウト・5xxのみ。（元記事：0811-0818 #9）</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">16.</span><strong><span class="tag p2">P2</span> 各工程に「完了条件」を明文化する</strong>：「ニュースを調べる」のような曖昧なタスクは終了判定できない。入力・出力・完了条件を工程ごとに定義すると、AI自身の「できました」ではなくシステム側で判定できる。既存スキルのSKILL.mdに完了条件セクションを足すのが最小の一歩。（元記事：0811-0818 #9）</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">17.</span><strong><span class="tag p3">P3</span> 本番投入前チェックリスト15項目を持っておく</strong>：一意のジョブID／二重実行防止／状態の外部保存／途中再開／完了条件／出力形式の検証／リトライ上限／タイムアウト／コスト上限／読み書き権限の分離／削除・公開・課金の承認制／連続実行の検知／失敗通知／実行ログ／緊急停止。<strong>一つでも答えられなければ完全自動へ進む段階ではない</strong>。（元記事：0811-0818 #9）</li>
+</ul>
+<h3>📚 学習</h3>
+<ul class="items">
+<li class="item"><span class="num">18.</span><strong><span class="tag p2">P2</span> 「決定的な処理」と「非決定的な処理」を分ける</strong>：同じ入力なら同じ結果になるべき処理（API取得・重複削除・JSON保存・通知）はコードへ。文脈を読んで判断する処理（重要度評価・要約・分類）だけAIへ。AIの担当範囲が狭いほどテストと改善が簡単になる。（元記事：0811-0818 #9）</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">19.</span><strong><span class="tag p2">P2</span> 圧縮された会話に依存しない</strong>：Compactionは要約なので必ず情報が落ちる。特に消えやすいのは「なぜその設計を選んだか」「却下した候補」「未完了の作業」「正確な数値やID」「承認した内容」。<strong>これらは会話の外へ出す</strong>。現環境の basic-memory ＋ auto-memory がまさにこの役割なので、運用を続ける根拠になる。（元記事：0811-0818 #9）</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">20.</span><strong><span class="tag p3">P3</span> 実行環境の使い分け</strong>：<code>/loop</code>＝セッションが開いている間の短時間監視・試作（定期タスクは7日で失効）／Claude Routines＝PCを閉じても動く定期実行（最小間隔1時間・リサーチプレビュー）／Modal・Trigger.dev＝AI判断が不要な処理／Agent SDK＝自分のアプリに組み込む／Managed Agents＝実行基盤ごと任せる。<strong>現環境の systemd タイマーは「自前のRoutines」に相当</strong>する位置づけ。（元記事：0811-0818 #9）</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">21.</span><strong><span class="tag p3">P3</span> 最初は「1時間・1体・1業務」で作る</strong>：実行1時間以内、エージェント1体、業務1つ、外部書き込みは下書きのみ、再試行2〜3回、公開前は人間承認。この順で段階的に広げると、壊れた工程を特定できる。（元記事：0811-0818 #9）</li>
+</ul>
+<h2>5. Skills運用</h2>
+<p class="lead">「同じClaude Codeでも、渡すSkills次第で出力が別物になる」という指摘が今期の話題。現環境はスキル16本を dotfiles 管理しており土台はあるが、<strong>用途が業務寄りに偏っていて汎用の品質底上げスキルがない</strong>。</p>
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+<li class="item"><span class="num">22.</span><strong><span class="tag p1">P1</span> スキルの自動検索＆導入を試す</strong>：やりたい作業を自然言語で伝えるだけで、オープンレジストリから最適なスキルをClaude自身が探索・インストールする機能。スキル名を知らなくても候補が出る。例えば「PDFの表を崩さずMarkdownに変換したい」と伝えて何が提案されるか見る。手動リサーチが不要になる。（元記事：0811-0818 #4）</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">23.</span><strong><span class="tag p2">P2</span> デザイン品質を底上げするSkillsを1本入れる</strong>：Skillsなしのままだと「きれいだが平凡」な出力になる。デザイン系Skillsを渡すと同じモデルでも高級ブランドページ相当になる、という実演が話題に。<strong>現環境の該当ケースは <code>quiz-generator</code> / <code>mock-test-generator</code> の問題集HTML</strong>。<code>references/html-template.md</code> で体裁は統一しているが、印刷映えや可読性の設計指針は入っていない。（元記事：0817-0824 #4）</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">24.</span><strong><span class="tag p2">P2</span> Skillsに「自己進化」を仕込む</strong>：同じ業務を3回繰り返して細部が固まったら、AIがその学習をSKILL.mdに書き戻し、4回目から自動適用する運用。<strong>現環境で最も効くのは <code>hr-shahou-register</code></strong>——新しい手続き書式を調べるたびに「この保険者はこの様式」「この添付書類が漏れやすい」が溜まるので、定義ファイルだけでなくSKILL.md本文へ書き戻すルールを足す。（元記事：0817-0824 #4）</li>
+</ul>
+<h3>📚 学習</h3>
+<ul class="items">
+<li class="item"><span class="num">25.</span><strong><span class="tag p2">P2</span> Ambient Agent の4コンポーネント</strong>：Claude（判断）／CLAUDE.md（業務文脈）／MCP（ツール接続）／Skills＋cron（起動・配線）。外部のワークフローツール（N8N等）を挟まず Claude Code 内で完結させる設計。CLAUDE.mdは6ブロック（Business Identity / Active Clients / Communication Standards / <strong>Decision Authority</strong> / Quality Standards / This Week&#x27;s Focus）で書き、<strong>Decision Authority＝AIが自走してよい領域と人間にエスカレーションする領域の線引きが最重要</strong>。（元記事：0817-0824 #4）</li>
+</ul>
+<h2>6. Claude Code 新機能（今期の公式アップデート）</h2>
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+<li class="item"><span class="num">26.</span><strong><span class="tag p1">P1</span> <code>/design</code> コマンドを試す</strong>：ビルド前に「/design {機能} のオプションをいくつか」と投げると、アートボード（画面案）が複数出て、気に入ったものを選んで編集・実装できる。<strong>「作ってから作り直し」がまるごと消える</strong>のが狙い。現環境ではすでに <code>design</code> スキルが利用可能なので、追加インストールなしで試せる。問題集HTMLやレポートHTMLの体裁決めに直接使える。（元記事：0817-0824 #3、0811-0818 #1）</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">27.</span><strong><span class="tag p2">P2</span> セッション間メッセージ送信を使う</strong>：別セッションへ<strong>サマリー</strong>（履歴やファイルではない）を送り、相手のセッションがタスクの途中から引き継ぐ機能。自分を再説明する必要がなくなる。長い分析セッションが重くなったとき、新しいセッションへ引き継ぐ使い方ができる。（元記事：0801-0810 #2）</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">28.</span><strong><span class="tag p3">P3</span> オートコンティニュー（デスクトップ）</strong>：使用制限に達したとき、チェックボックスをオンにしておくと制限リセット後に自動で中断箇所から再開する。週次制限50%増が今日で切れるので、9月以降に効いてくる。（元記事：0811-0818 #6）</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">29.</span><strong><span class="tag p3">P3</span> Chromeセッションの引き継ぎ</strong>：デスクトップ・ウェブ・モバイル間で会話が保存され、スキルとコネクターがブラウザで動作する。Max/Teamで提供開始、Proへは数週間以内。<strong>Windows PC（miryo）との行き来がある環境なので、マルチ環境対応ルールと合わせて確認する価値がある</strong>。（元記事：0811-0818 #8）</li>
+</ul>
+<h3>📡 情報収集</h3>
+<ul class="items">
+<li class="item"><span class="num">30.</span><strong><span class="tag p3">P3</span> Dynamic Workflow は要裏取り</strong>：「/model を opus 4.8、/effort を ultracode に設定し、プロンプトに『workflow』と入れるだけで、分解→複数サブエージェント起動→検証→レポートまで自動」という速報が2件。ただし<strong>2件とも個人アカウントの速報で、公式告知の引用がない</strong>。CLAUDE.mdの「まとめ記事やツイートの情報だけで実装しない」ルールに該当するので、実装前に <code>doc-verifier</code> で公式確認する。（元記事：0811-0818 #1・#10）</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">31.</span><strong><span class="tag p3">P3</span> @ClaudeDevs / @claudeai</strong>：今期19件中5件がこの2アカウント発。Autoモード、オートコンティニュー、週次制限、Chrome引き継ぎ、Sonnet 5価格と、<strong>実際に環境設定を変える必要がある情報はほぼここから出ている</strong>。最優先でウォッチ。</li>
+</ul>
+<h2>7. 知識管理・情報収集</h2>
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+<li class="item"><span class="num">32.</span><strong><span class="tag p2">P2</span> AIの要約を捨てずに1か所へ溜める</strong>：要約だけ受け取ってチャットを閉じると、半年後に同じことをまた調べる。1か所に入れておくと勝手に育つ置き場になる、という運用。<strong>現環境はすでに basic-memory ＋ auto-memory ＋ Google Drive自動アップロード（PostToolUseフック）で実装済み</strong>。今回の分析でわかったのは、むしろ<strong>溜めた後の「分析」が5週間止まっていた</strong>こと。溜める仕組みより、溜めたものを定期的に処理するトリガーの方が課題。（元記事：0810-0810 #1）</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">33.</span><strong><span class="tag p2">P2</span> 分析フェーズもスケジュール化する</strong>：収集（systemdタイマー）は自動だが、分析は手動起動なので今回のように溜まる。<strong>収集ジョブの完了時に「未分析ファイルが2本以上あれば通知」を出す</strong>のが最小の対策。既存の Google Drive アップロードフックと同じ形で組める。（今回の分析から導出）</li>
+</ul>
+<h3>📡 情報収集</h3>
+<ul class="items">
+<li class="item"><span class="num">34.</span><strong><span class="tag p3">P3</span> 落合陽一のAI活用（co-vibe）</strong>：Anthropic / OpenAI / Groq / Ollama を横断し、タスクの複雑さでモデルを切り替えるマルチプロバイダー型コーディングエージェント。ディープリサーチ・複数エージェント並列・セッション永続化を掲げている。<strong>「勝負はプロンプトからハーネス設計へ移った」という主張の実物</strong>なので、設計の参考として追う価値がある。（元記事：0817-0824 #1）</li>
+</ul>
+<h2>8. 実践事例</h2>
+<h3>📚 学習</h3>
+<ul class="items">
+<li class="item"><span class="num">35.</span><strong><span class="tag p3">P3</span> Claude Codeで自宅Wi-Fiを診断して112倍速</strong>：SoftBank光をPPPoEのまま1年以上使っていたのが原因。光BBユニットを足してIPv6 IPoEへ切替、市販ルーターはAPモードへ降格。負荷時応答（RPM）11.0→1231.0。<strong>学べるのは手順ではなく進め方</strong>——①診断スクリプトを書かせる ②tracerouteで原因を特定させる ③効果のない対策を捨てさせる ④機材写真を渡して手順書を作らせる ⑤導入後に再計測して検証する。「作って終わり」にせず検証まで回す型そのもの。（元記事：0811-0818 #3）</li>
+</ul>
+<h2>✅ 実施済み（参考）</h2>
+<p class="lead">今回の推奨のうち、すでに環境に入っているもの。</p>
+<ul class="items">
+<li class="item"><strong>Auto Mode 関連</strong>：<code>settings.json</code> に <code>&quot;defaultMode&quot;: &quot;acceptEdits&quot;</code> 設定済み（ただし推奨1で見直し対象）</li>
+<li class="item"><strong>Hooksによる強制</strong>：WebFetch禁止（PreToolUse・exit 2）／Read サイズガード／PostToolUse の構文チェック／basic-memory書き込み時のGoogle Driveアップロード</li>
+<li class="item"><strong>denyリスト</strong>：<code>rm -rf</code> / <code>git push --force</code> / <code>.env</code> 読み書き</li>
+<li class="item"><strong>知識の外部保存</strong>：basic-memory ＋ auto-memory ＋ Google Drive 自動アップロード（推奨32はほぼ達成済み）</li>
+<li class="item"><strong>無人スケジュール実行</strong>：systemd タイマーで週次ブックマーク収集（<code>TimeoutStartSec=infinity</code> / <code>Restart=on-failure</code> / <code>RestartSec=600</code> / <code>StartLimitBurst=3</code>）</li>
+<li class="item"><strong>サブエージェント</strong>：<code>doc-verifier</code> / <code>my-info-extractor</code> / <code>seo-researcher</code> の3体</li>
+<li class="item"><strong>Skills基盤</strong>：16本を dotfiles 管理・シンボリックリンクでマルチ環境対応</li>
+<li class="item"><strong><code>design</code> スキル</strong>：利用可能な状態（推奨26は追加導入不要）</li>
+</ul>
+<h2>対象外（期限切れ）</h2>
+<ul class="items">
+<li class="item"><strong>Canvaセミナー申込</strong>（0722 #1）：2026年7月開催枠のため終了。</li>
+<li class="item"><strong>Claude Opus 5リリース記念セミナー</strong>（0801-0810 #3）：2026年8月開催枠のため終了。</li>
+</ul>
+<h2>今週のピックアップ3選</h2>
+<ul class="items">
+<li class="item"><span class="num">1.</span><strong><code>defaultMode</code> の設定を見直す</strong>（本文1番）— 8/14からAutoモードが既定になったが、<code>acceptEdits</code> をピン留めしている限り危険コマンド分類器（検出率89%）の恩恵を受けていない可能性が高い。<strong>設定1行の話で、しかも安全性に直結する</strong>。まず公式確認から。</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">2.</span><strong>雑用は読み取り専用の下請けエージェントへ</strong>（本文10番）— 今回の分析作業そのものが実例になった。68KB・73KBのファイルを本体で読み込んだせいで、その中身が以降のやりとり全部に乗り続けている。下請けに出せばこれが起きない。<strong>長い作業ほど効き、エージェント1体を足すだけ</strong>。</li>
+</ul>
+<ul class="items">
+<li class="item"><span class="num">3.</span><strong>状態を会話ではなくファイルへ持たせる</strong>（本文13番）— 5月に週次収集がタイムアウトで失敗（status=143）したとき、最初からやり直すしかなかった。<code>job_id</code> と <code>current_step</code> をJSONに書き出すだけで途中再開できる。<strong>すでに無人運用しているからこそ、今いちばん実利がある</strong>。</li>
+</ul>
+<footer>Xブックマーク週次分析 ／ x-bookmark-analyze</footer>
+</div>
+</body>
+</html>

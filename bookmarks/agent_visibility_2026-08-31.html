@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>エージェントの発動と可視性</title>
+<style>
+body{font-family:"Segoe UI","Hiragino Sans","Noto Sans JP",sans-serif;line-height:1.95;max-width:900px;margin:0 auto;padding:32px 20px;color:#222;background:#fafafa}
+h1{font-size:1.45em;border-bottom:3px solid #1d9bf0;padding-bottom:10px}
+h2{font-size:1.15em;margin-top:36px;border-left:6px solid #1d9bf0;padding-left:12px}
+h3{font-size:1em;margin-top:20px;color:#0d5c8f}
+table{border-collapse:collapse;width:100%;margin:12px 0;background:#fff}
+th,td{border:1px solid #ddd;padding:9px 12px;text-align:left;font-size:.93em;vertical-align:top}
+th{background:#eef6fc}
+.hint{background:#eefaf0;border:1px solid #9ed8ae;border-radius:8px;padding:14px 20px;margin:16px 0}
+.warn{background:#fff4e5;border:1px solid #ffb74d;border-radius:8px;padding:14px 20px;margin:16px 0}
+.bad{background:#fdecec;border:1px solid #e59a9a;border-radius:8px;padding:14px 20px;margin:16px 0}
+.box{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:14px 20px;margin:16px 0}
+code{background:#f0f2f4;padding:2px 6px;border-radius:4px;font-size:.9em}
+pre{background:#2d2d2d;color:#f0f0f0;padding:14px 16px;border-radius:8px;overflow-x:auto;font-size:.84em;line-height:1.6}
+.term{background:#1a1a1a;color:#dcdcdc;padding:14px 16px;border-radius:8px;font-family:"Consolas","Courier New",monospace;font-size:.85em;line-height:1.7}
+.term .g{color:#6ec46e}.term .b{color:#6eaee0}.term .d{color:#888}
+.big{font-size:1.05em;font-weight:bold;color:#0d5c8f}
+small{color:#666}
+.ok{color:#0a7d33;font-weight:bold}
+.ng{color:#c62828;font-weight:bold}
+</style>
+</head>
+<body>
+<h1>エージェントは勝手に立ち上がるのか／それは見えるのか</h1>
+<p><small>2026-08-31／ご質問への回答</small></p>
+
+<h2>まず用語の整理</h2>
+<table>
+<tr><th></th><th>スキル（Skill）</th><th>エージェント（Agent）</th></tr>
+<tr><td>正体</td><td>作業<strong>手順書</strong></td><td>別室の<strong>担当者</strong></td></tr>
+<tr><td>作業場所</td><td><strong>この会話の中</strong></td><td><strong>別の会話</strong></td></tr>
+<tr><td>作業分担</td><td>起きない（私が手順に従うだけ）</td><td><strong>起きる</strong></td></tr>
+<tr><td>今回の話</td><td>—</td><td><code>equipment-history</code>／<code>bulk-reader</code> はこちら</td></tr>
+</table>
+<p><small>今日の分析で使った <code>x-bookmark-analyze</code> はスキルなので、分担は起きていません（だから68KBを私が直接読みました）。</small></p>
+
+<h2>Q1. あらゆる場面で勝手に立ち上がるのか</h2>
+<div class="warn">
+<p class="big">「あらゆる場面」ではありません。<code>description</code> に書いた条件に噛み合ったときだけです。</p>
+<p>ただし<strong>判定しているのは私（Claude）なので、機械的な条件分岐ではありません。</strong>取りこぼすこともあれば、余計に立ち上げることもあります。ここは正直に申し上げます。</p>
+</div>
+
+<div class="bad">
+<h3>ご懸念はもっともです</h3>
+<p>私が提案した <code>bulk-reader</code> の <code>description</code> は、こう書いてありました。</p>
+<pre>「集計して」「拾って」「一覧にして」「全部から探して」「突き合わせて」
+と言われたとき、対象が複数ファイルまたは数十KB以上なら必ず使う。</pre>
+<p><strong>これはかなり広いです。</strong>「数十KB以上」は業務データのほとんどが該当するので、実際に頻繁に立ち上がります。<span class="ng">この広さは私の設計判断であって、ご承認いただいた条件ではありません。</span></p>
+</div>
+
+<h2>Q2. 立ち上がったこと・分担されたことは見えるのか</h2>
+<div class="box">
+<h3>見えるもの <span class="ok">◯</span></h3>
+<p>ターミナルに、こういうブロックが出ます。</p>
+<div class="term">
+<span class="b">●</span> Task(<span class="g">bulk-reader</span>)<br>
+&nbsp;&nbsp;⎿ 薬品R08年度xlsから4〜8月の原単位を月別に抽出<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="d">Done (6 tool uses · 41.2k tokens · 38s)</span>
+</div>
+<ul>
+<li><strong>どのエージェントが動いたか</strong>（名前が出る）</li>
+<li><strong>何を頼まれたか</strong>（1行の指示）</li>
+<li><strong>どれだけ使ったか</strong>（ツール回数・トークン・所要時間）</li>
+</ul>
+<p>立ち上がったこと自体は<strong>必ず見えます</strong>。黙って動くことはありません。</p>
+
+<h3>見えないもの <span class="ng">✗</span></h3>
+<ul>
+<li><strong>別室の中でのやりとり</strong>（どのファイルをどう読んだか）— 既定では折りたたまれています</li>
+<li><strong>エージェントの最終報告そのもの</strong> — これは<span class="ng">あなたには直接表示されず、私にだけ返ります</span></li>
+</ul>
+<div class="warn">
+<p>2つ目が重要です。<strong>エージェントが何と報告してきたかは、私が伝えない限りあなたには届きません。</strong>私が要約して伝えることになっているので、<strong>私の要約が挟まる＝そこで落ちる可能性がある</strong>ということです。</p>
+</div>
+</div>
+
+<h2>対策：3つ、どれも今すぐ効きます</h2>
+
+<div class="box">
+<h3>対策1：私に「必ず報告する」ルールを課す（<span class="ok">一番簡単・確実</span>）</h3>
+<p>グローバル CLAUDE.md に1項目足すだけです。</p>
+<pre>## エージェント使用時の報告ルール
+- サブエージェントを起動したら、回答の冒頭で必ず次を書く
+  「【エージェント使用】名前 ／ 頼んだこと ／ 返ってきた要点」
+- 起動を見送った場合も、判断に迷った場面ではその旨を1行添える
+- エージェントの報告をそのまま採用せず、
+  自分で確認できる範囲は確認してから使う</pre>
+<p>3つ目は<strong>推奨7番（レビュー結果をそのまま適用させない）</strong>と同じ考え方です。下請けの報告も無検証で通さない。</p>
+</div>
+
+<div class="box">
+<h3>対策2：<code>description</code> を狭くする（<span class="ok">発動条件を握る</span>）</h3>
+<table>
+<tr><th>運用</th><th>descriptionの書き方</th><th>向く人</th></tr>
+<tr><td><strong>自動任せ</strong></td><td>「〜のとき必ず使う」（今の案）</td><td>まず効果を見たい</td></tr>
+<tr><td><strong>半自動</strong></td><td>「対象が5ファイル以上または100KB以上のときに使う」と<strong>閾値を上げる</strong></td><td>頻度を抑えたい</td></tr>
+<tr><td><strong>指名のみ</strong></td><td>「ユーザーが<strong>エージェント名を明示したときだけ</strong>使う」</td><td>完全に手綱を握りたい</td></tr>
+</table>
+<p><strong>最初は「指名のみ」で作って、慣れてから広げる</strong>のが安全です。ブックマーク分析の推奨21番「1時間・1体・1業務から始める」と同じ考え方です。</p>
+</div>
+
+<div class="box">
+<h3>対策3：起動をログに残す（<span class="ok">後から追える</span>）</h3>
+<p>あなたの環境はすでにフックを6種類（<code>PreToolUse</code> / <code>PostToolUse</code> / <code>SessionStart</code> / <code>SessionEnd</code> / <code>PostCompact</code> / <code>UserPromptSubmit</code>）使いこなしています。同じ要領で、エージェント終了時にログを書けます。</p>
+<div class="warn">
+<p><strong>ただし要確認です。</strong>サブエージェント終了を捕まえるイベント（<code>SubagentStop</code> という名前だと認識していますが、確証がありません）は<strong>公式ドキュメントで裏取りしてから</strong>実装すべきです。CLAUDE.md の「まとめ記事やツイートの情報だけで実装しない」に該当します。<br>
+→ <code>doc-verifier</code> エージェントで確認できます。</p>
+</div>
+</div>
+
+<h2>おすすめの順番</h2>
+<div class="hint">
+<ol>
+<li><strong>対策1（報告ルール）を先に入れる</strong> — CLAUDE.md に4行。これだけで「知らないうちに分担されていた」は無くなります</li>
+<li><strong><code>bulk-reader</code> は「指名のみ」で作る</strong> — あなたが名前を言ったときだけ動く。まず挙動を見る</li>
+<li>使ってみて有用なら、<code>description</code> を広げて自動発動に移行</li>
+<li>対策3（ログ）は、自動発動に移行するときに検討</li>
+</ol>
+<p><small>なお、今日作った <code>equipment-history</code> は現在「自動発動する」書き方になっています。ご希望なら「指名のみ」に狭めます。</small></p>
+</div>
+
+</body>
+</html>

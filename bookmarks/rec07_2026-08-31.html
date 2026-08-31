@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>推奨7番：レビュー結果をそのまま適用させない</title>
+<style>
+body{font-family:"Segoe UI","Hiragino Sans","Noto Sans JP",sans-serif;line-height:1.95;max-width:900px;margin:0 auto;padding:32px 20px;color:#222;background:#fafafa}
+h1{font-size:1.45em;border-bottom:3px solid #1d9bf0;padding-bottom:10px}
+h2{font-size:1.15em;margin-top:36px;border-left:6px solid #1d9bf0;padding-left:12px}
+h3{font-size:1em;margin-top:20px;color:#0d5c8f}
+table{border-collapse:collapse;width:100%;margin:12px 0;background:#fff}
+th,td{border:1px solid #ddd;padding:9px 12px;text-align:left;font-size:.93em;vertical-align:top}
+th{background:#eef6fc}
+.hint{background:#eefaf0;border:1px solid #9ed8ae;border-radius:8px;padding:14px 20px;margin:16px 0}
+.warn{background:#fff4e5;border:1px solid #ffb74d;border-radius:8px;padding:14px 20px;margin:16px 0}
+.bad{background:#fdecec;border:1px solid #e59a9a;border-radius:8px;padding:14px 20px;margin:16px 0}
+.box{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:14px 20px;margin:16px 0}
+code{background:#f0f2f4;padding:2px 6px;border-radius:4px;font-size:.9em}
+pre{background:#2d2d2d;color:#f0f0f0;padding:14px 16px;border-radius:8px;overflow-x:auto;font-size:.84em;line-height:1.6}
+.big{font-size:1.05em;font-weight:bold;color:#0d5c8f}
+small{color:#666}
+.ok{color:#0a7d33;font-weight:bold}
+.ng{color:#c62828;font-weight:bold}
+</style>
+</head>
+<body>
+<h1>推奨7番：レビュー結果を「そのまま適用させない」</h1>
+<p><small>2026-08-31／元記事：0811-0818 #2（落合陽一式・AI監査術）</small></p>
+
+<h2>何を言っているのか</h2>
+<div class="hint">
+<p class="big">指摘を全部そのまま直させると、前より悪くなることがある。</p>
+<p>レビュー役が出した指摘には、<strong>重複・誤検出・互いに矛盾するもの</strong>が混ざります。それを無選別に「全部直して」と渡すと、矛盾した修正が入って壊れます。<br>
+だから「<strong>整理してから直す。直したら再検証する</strong>」を必ず1工程挟む、という話です。</p>
+</div>
+
+<h3>なぜ矛盾が起きるのか</h3>
+<p>推奨5番で「視点を1つに絞って複数の担当に見せろ」と言いました。視点を分けると、<strong>担当同士は互いの都合を知りません</strong>。だから当然ぶつかります。</p>
+<div class="box">
+<p>例：問題集HTMLのレビュー</p>
+<ul>
+<li>担当A（初心者目線）「この設問は言葉が難しい。もっと噛み砕け」</li>
+<li>担当B（正確性）「噛み砕くと定義がズレる。教科書どおりの用語を使え」</li>
+</ul>
+<p>どちらも正しい。<strong>両方そのまま適用すると、噛み砕いた上で用語も戻す＝意味不明な文になります。</strong></p>
+</div>
+
+<h2>あなたの環境で、これが起きている場所</h2>
+<p><code>answer-validator</code> スキルが、まさにこの形です。</p>
+
+<div class="box">
+<h3>良くできている点（すでに推奨5番は実装済み）</h3>
+<p>検証を3つの視点に分けています。これは落合式そのものです。</p>
+<table>
+<tr><th>ステップ</th><th>視点</th></tr>
+<tr><td>2A</td><td>解き直し検証（自分で解いて答えが合うか）</td></tr>
+<tr><td>2B</td><td>転記突合検証（HTMLへの写し間違い）</td></tr>
+<tr><td>2C</td><td>知識検証（そもそも知識として正しいか）</td></tr>
+</table>
+<p><span class="ok">視点の分離はできています。</span></p>
+</div>
+
+<div class="bad">
+<h3>足りない点（推奨7番に該当する3つの穴）</h3>
+<table>
+<tr><th>穴</th><th>いまの状態</th></tr>
+<tr><td><strong>① 誤検出を落とす工程がない</strong></td><td>ステップ3「フラグ集約」は<strong>OR条件の表だけ</strong>（2Aか2Bに✗があれば✗）。「その指摘は本当に誤りか」を判定する工程がない</td></tr>
+<tr><td><strong>② 矛盾を整理する工程がない</strong></td><td>2Aが「答えが違う」、2Cが「設問文の前提が違う」と別方向の指摘を出したとき、どちらを先に直すかが決まっていない</td></tr>
+<tr><td><strong>③ 再検証が任意</strong></td><td>ステップ5に「再度 answer-validator に通すことを<strong>推奨します</strong>」とある。<span class="ng">推奨＝やらなくても終われる</span></td></tr>
+</table>
+<p>さらにステップ5は、修正案を<strong>そのまま quiz-generator に貼ってください</strong>という案内です。これが「レビュー結果をそのまま適用させる」形そのものです。</p>
+</div>
+
+<h2>直し方（3か所だけ）</h2>
+
+<div class="box">
+<h3>① ステップ3.5「指摘の整理」を新設する</h3>
+<p>ステップ3（フラグ集約）とステップ4（レポート出力）の間に挟みます。</p>
+<pre>## ステップ 3.5：指摘の整理（修正案を出す前に必須）
+
+集まった✗・要確認を、そのまま修正案にしない。先に次の3つを処理する。
+
+### (1) 重複を1本にまとめる
+同じ原因から出た指摘は1件に統合する。
+例：2Aで「答えが違う」・2Bで「解答欄の数字が違う」＝
+    転記ミス1件であって2件ではない。
+
+### (2) 誤検出を落とす
+次に当たるものは指摘から外し、外した理由を1行残す。
+- 別解・別表記として正しいもの（例：「1/2」と「0.5」）
+- 出題範囲の学年では扱わない厳密性を求めているもの
+- 図表がワーク原本参照のため、HTML側だけでは判定できないもの
+
+### (3) 矛盾を裁く
+2つの指摘が別方向の修正を要求している場合、
+両方を適用せず、次の優先順で片方を採る。
+  1. 事実・計算の誤り（2A・2B）
+  2. 知識としての正確さ（2C）
+  3. 読みやすさ・平易さ
+採らなかった側は「見送り」として理由とともに残す。</pre>
+</div>
+
+<div class="box">
+<h3>② ステップ5の渡し方を変える</h3>
+<table>
+<tr><th></th><th>いま</th><th>変更後</th></tr>
+<tr><td>渡すもの</td><td>✗の修正案を全部列挙</td><td><strong>ステップ3.5で整理済みの指摘だけ</strong></td></tr>
+<tr><td>添えるもの</td><td>なし</td><td>「落とした指摘」と「見送った指摘」を理由つきで併記</td></tr>
+</table>
+<p><small>落とした理由を残すのが大事です。残さないと、次回また同じ誤検出が出て、また同じ判断をやり直すことになります。</small></p>
+</div>
+
+<div class="box">
+<h3>③ 再検証を必須にする</h3>
+<p>「推奨します」を、既存のステップ6・7と同じ<strong>「必須・省略禁止」</strong>の書き方に揃えます。</p>
+<pre>修正後のHTMLは、必ず answer-validator に再度通すこと（省略禁止）。
+再検証で✗が0件になるまで、ステップ6の検証レシートは発行しない。</pre>
+<div class="warn">
+<p><strong>これが一番効きます。</strong>「直したつもり」で終わるのを防ぐのが目的で、ブックマーク分析の推奨16番「各工程に完了条件を持たせる」と同じ話です。<br>
+完了条件＝<strong>再検証で✗が0件</strong>。AI自身の「直しました」では終わらせない。</p>
+</div>
+</div>
+
+<h2>他に効く場所</h2>
+<table>
+<tr><th>対象</th><th>状況</th></tr>
+<tr><td><code>weekly-critic</code>（未作成・推奨5番）</td><td>作るなら<strong>最初から</strong>整理工程を入れる。批判役は指摘が多く出るので、無選別だと週次レポートが指摘だらけになる</td></tr>
+<tr><td><code>doc-verifier</code></td><td>公式と記事の食い違いを出す役。ここも「記事側の言い換えにすぎない差」を誤検出として落とす工程があると精度が上がる</td></tr>
+<tr><td><code>equipment-history</code>（今日作成）</td><td><strong>該当しない。</strong>報告のみで修正を出さない設計にしたため</td></tr>
+</table>
+
+<h2>やるとしたら</h2>
+<div class="hint">
+<p>変更は <code>~/dotfiles/claude/skills/answer-validator/SKILL.md</code> の<strong>1ファイル・3か所</strong>だけです。</p>
+<p>ただし <code>answer-validator</code> は実際に使っている本番スキルなので、<strong>変更前に現物を見ていただいてから</strong>にしたいです。特に③（再検証の必須化）は、検証を2回通すことになるので手間が増えます。そこを許容するかはご判断ください。</p>
+</div>
+
+</body>
+</html>
