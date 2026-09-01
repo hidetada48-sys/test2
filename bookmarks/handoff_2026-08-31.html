@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>申し送り書 2026-08-31 → 09-01</title>
+<style>
+body{font-family:"Segoe UI","Hiragino Sans","Noto Sans JP",sans-serif;line-height:1.95;max-width:900px;margin:0 auto;padding:32px 20px;color:#222;background:#fafafa}
+h1{font-size:1.45em;border-bottom:3px solid #1d9bf0;padding-bottom:10px}
+h2{font-size:1.15em;margin-top:36px;border-left:6px solid #1d9bf0;padding-left:12px}
+table{border-collapse:collapse;width:100%;margin:12px 0;background:#fff}
+th,td{border:1px solid #ddd;padding:9px 12px;text-align:left;font-size:.93em;vertical-align:top}
+th{background:#eef6fc}
+.hint{background:#eefaf0;border:1px solid #9ed8ae;border-radius:8px;padding:14px 20px;margin:16px 0}
+.warn{background:#fff4e5;border:1px solid #ffb74d;border-radius:8px;padding:14px 20px;margin:16px 0}
+.box{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:14px 20px;margin:16px 0}
+code{background:#f0f2f4;padding:2px 6px;border-radius:4px;font-size:.9em}
+pre{background:#2d2d2d;color:#f0f0f0;padding:14px 16px;border-radius:8px;overflow-x:auto;font-size:.84em;line-height:1.6}
+small{color:#666}
+.ok{color:#0a7d33;font-weight:bold}
+.ng{color:#c62828;font-weight:bold}
+.big{font-size:1.05em;font-weight:bold;color:#0d5c8f}
+</style>
+</head>
+<body>
+<h1>申し送り書（2026-08-31 → 2026-09-01）</h1>
+<p><small>出典：auto-memory <code>handoff_agent_setup.md</code> ＋ basic-memory「2026-08-31 ブックマーク分析とエージェント整備の申し送り」。本日 09-01 に実物を確認した結果も併記。</small></p>
+
+<h2>1. 前回やったこと（完了済み）</h2>
+<table>
+<tr><th>項目</th><th>中身</th><th>今日の実物確認</th></tr>
+<tr><td>ブックマーク19件の分析</td><td>0722／0801-0810／0810／0811-0818／0817-0824 を一括分析。8グループ・推奨35項目のレポートを作成しHTML化</td><td class="ok">ファイル・HTMLとも存在</td></tr>
+<tr><td><code>equipment-history</code> エージェント作成</td><td>設備トラブルの過去履歴を横断調査する読み取り専用エージェント（<code>~/dotfiles/claude/agents/</code>）</td><td class="ng">まだ一度も動かしていない（未検証）</td></tr>
+<tr><td>保存3点セット</td><td>test2／dotfiles 両リポジトリともコミット・プッシュ済み</td><td class="ok">dotfiles はクリーン・未プッシュ0</td></tr>
+</table>
+
+<h2>2. 次に決めること（専務の判断待ち・5件）</h2>
+<table>
+<tr><th>#</th><th>決めること</th><th>補足</th><th>状態</th></tr>
+<tr><td>1</td><td class="big">CLAUDE.md に「エージェント報告ルール」を追加するか</td><td>エージェントを起動したら冒頭で「名前／依頼内容／返ってきた要点」を必ず書く</td><td class="ng">未着手（最優先）</td></tr>
+<tr><td>2</td><td><code>bulk-reader</code> を作るか（推奨10番）</td><td>雑用委任用。モデルは Haiku 4.5 案。<strong>指名のみ／自動発動</strong>のどちらにするかが未決</td><td class="ng">未着手</td></tr>
+<tr><td>3</td><td><code>equipment-history</code> を「指名のみ」に狭めるか</td><td>今は自動発動する書き方になっている</td><td class="ng">未着手</td></tr>
+<tr><td>4</td><td><code>answer-validator</code> の3か所修正（推奨7番）</td><td>ステップ3.5新設／ステップ5の渡し方変更／再検証の必須化。<strong>本番スキルなので現物確認してから着手</strong></td><td class="ng">未着手</td></tr>
+<tr><td>5</td><td><code>defaultMode</code> の見直し（推奨1番・P1）</td><td>要 <code>doc-verifier</code> で公式ドキュメント確認</td><td class="ng">未着手</td></tr>
+</table>
+
+<h2>3. なぜこの順番か（申し送りの理由）</h2>
+<div class="warn">
+<p>専務は「エージェントが<strong>勝手に動くのか</strong>」「<strong>分担が見えるのか</strong>」を強く懸念している。<br>
+だから自動化を広げる前に、<strong>まず可視性（＝報告ルール）を確保する</strong>順序で進める。</p>
+</div>
+
+<h2>4. 前回わかった観察メモ</h2>
+<div class="box">
+<ul>
+<li>収集（systemdタイマー）は正常。<strong>止まっていたのは分析フェーズで、5週間滞留していた</strong>。収集完了時に「未分析2本以上で通知」する仕組みは<strong>未実装</strong>。</li>
+<li>件数カウントの注意：<code>grep -c '^## '</code> は引用ツイート内の見出しも拾う。正はインデックスの「合計N件」。</li>
+</ul>
+</div>
+
+<h2>5. 再開手順（申し送りに明記されていたもの）</h2>
+<div class="hint">
+<p>再開時は<strong>まず #1（報告ルール）から</strong>。解説HTMLは <code>http://127.0.0.1:8777/</code> 配下。</p>
+<p>サーバが落ちていたら bookmarks/ で起動：</p>
+<pre>python3 -m http.server 8777 --bind 127.0.0.1</pre>
+<p><small>※ 本日 09-01 に落ちていたため起動済み。</small></p>
+</div>
+
+<h2>6. 関連資料</h2>
+<ul>
+<li><a href="bookmark_analysis_2026-08-31.html">ブックマーク分析（推奨35項目・本体）</a></li>
+<li><a href="agent_visibility_2026-08-31.html">エージェントの発動と可視性（#1の背景）</a></li>
+<li><a href="rec07_2026-08-31.html">推奨7番 answer-validator 修正案（#4）</a></li>
+<li><a href="rec10_2026-08-31.html">推奨10番 bulk-reader 案（#2）</a></li>
+<li><a href="bookmark_status_2026-08-31.html">ブックマーク収集の現状</a></li>
+<li><a href="./">フォルダ一覧</a></li>
+</ul>
+</body>
+</html>
