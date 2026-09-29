@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ブックマーク分析レポート 2026-09-29</title>
+<style>
+  :root{--p1:#e6462e;--p2:#e08a1e;--p3:#3a7bd5;--bg:#f7f7f5;--card:#fff;--ink:#2b2b2b;--muted:#777;--line:#e5e2dc;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);line-height:1.75;
+    font-family:system-ui,-apple-system,"Segoe UI","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;}
+  .wrap{max-width:860px;margin:0 auto;padding:32px 20px 80px;}
+  h1{font-size:1.6rem;margin:0 0 6px;border-bottom:3px solid var(--ink);padding-bottom:14px;}
+  h2{font-size:1.2rem;margin:34px 0 12px;padding-left:12px;border-left:5px solid var(--ink);}
+  h3{font-size:1rem;margin:20px 0 8px;color:#444;}
+  .meta{color:var(--muted);font-size:.9rem;}
+  .lead{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:14px 0;}
+  ul.items{padding-left:0;list-style:none;margin:0;}
+  li.item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0;}
+  .num{font-weight:700;color:var(--muted);margin-right:6px;}
+  .tag{display:inline-block;color:#fff;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:999px;margin-right:8px;}
+  .p1{background:var(--p1);} .p2{background:var(--p2);} .p3{background:var(--p3);}
+  a{color:var(--p3);}
+  code{background:#eee;padding:1px 5px;border-radius:4px;font-size:.9em;}
+  footer{margin-top:40px;color:var(--muted);font-size:.82rem;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>ブックマーク分析レポート</h1>
+<div class="meta"><strong>作成日：2026-09-29</strong></div>
+<div class="meta"><strong>元データ：bookmarks_0831-0902.md（3件）／bookmarks_0901-0901.md（1件）／bookmarks_0907-0908.md（2件）／bookmarks_0908-0910.md（2件）／bookmarks_0916-0920.md（9件）／bookmarks_0922-0929.md（18件）＝合計35件</strong></div>
+<p class="lead">&gt; 記事番号の書き方：<code>0929-A1</code> は「0922-0929 のインデックスの A-1」という意味。</p>
+<p class="lead">&gt; 期間の略号：0902＝0831-0902／0901＝0901-0901／0908a＝0907-0908／0910＝0908-0910／0920＝0916-0920／0929＝0922-0929</p>
+<h2>全体の流れ（この1か月で何が起きたか）</h2>
+<ul class="items">
+<li class="item"><strong>9月前半</strong>：「仕事を一直線に並べず、並列に広げて最後に検証する」という設計の話（ワークフロー／グラフ設計）が中心。</li>
+<li class="item"><strong>9月中旬</strong>：それを製品にした <strong>Projects（1つの会話からClaudeが仕事を分けて並列に走らせる機能）</strong> と、<strong>Cowork（おまかせ作業モード）のClaude本体への統合・Claude Docs／Slides</strong> が登場。</li>
+<li class="item"><strong>9月下旬（最大テーマ）</strong>：<strong>Opus 5.5 の公開</strong>。「古いモデル向けに書いた指示（慎重に考えろ・ステップバイステップで等）を削れ」「effort（どれだけ頑張って考えるかの設定）の既定は medium に下がった」が一斉に語られた。18件中10件がこの話。</li>
+</ul>
+<p class="lead"><strong>この環境への一番大きな示唆</strong>：いまのCLAUDE.md（Claudeへの常設指示書）と settings.json（Claude Codeの設定ファイル）には、Opus 5.5 では逆効果かもしれない行が残っている（例：<code>effortLevel: &quot;high&quot;</code>、「複雑なタスクの前は /effort high」「ステップバイステップで説明する」）。まず監査（点検だけで書き換えない診断）に出すのが先。</p>
+<h2>① Opus 5.5 向けの指示の見直し（prompt-audit）【今週の主役・6件＋関連2件】</h2>
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+<li class="item"><span class="num">1.</span><span class="tag p1">P1</span> <strong><code>/doctor prompt-audit</code> で CLAUDE.md・スキル・エージェントを監査する</strong>：Claude Code v2.1.283 で追加された機能（<code>/checkup</code> は同じもの）。この環境は <strong>v2.1.284 なので今すぐ使える</strong>。古いモデル向けの「二重チェックしろ」「ステップバイステップで考えろ」「毎回詳しく説明しろ」系の行を、ファイル別・理由つきで「削る行／書き換える行」として出す。<strong>監査だけで何も書き換えない</strong>ので安全。対象は <code>~/.claude/CLAUDE.md</code>、<code>~/dotfiles/claude/skills/</code>（16本）、<code>~/dotfiles/claude/agents/</code>（4本）、<code>~/mino-sakura-hq</code> のCLAUDE.md。結果を見てから、どれを直すか専務が決める流れ。（元記事：0929-A1, A2, A5）</li>
+<li class="item"><span class="num">2.</span><span class="tag p1">P1</span> <strong>CLAUDE.md の「効き方が変わった行」を個別に点検する</strong>：特に次の2行が候補。</li>
+</ul>
+<p class="lead">   - 「複雑なタスクの前は <code>/effort high</code> を実行する（effortLevelのバグ対策）」→ Opus 5.5 は medium でも Opus 5 の high 以上と公式が説明。バグ対策としての役目が今も必要か要確認。</p>
+<p class="lead">   - 「ステップバイステップで説明する」→ これは<strong>専務への説明の仕方</strong>の指示なので、公式ガイドが削れと言う「ステップバイステップで<strong>考えろ</strong>」とは別物。監査で誤って削られないよう、意図を1行添えておくとよい。</p>
+<p class="lead">   （元記事：0929-A3, A4, A6）</p>
+<ul class="items">
+<li class="item"><span class="num">3.</span><span class="tag p2">P2</span> <strong>「止まらずに進める／ここでは止まる」を CLAUDE.md に明記する</strong>：Opus 5.5 は途中で「報告だけして止まる」ことがあると公式ガイドにある。公式の型は「自分の入力が要らない手順は続ける。状況報告は次の作業と同じメッセージに書く。止まるのは自分がいないと進めない時と、削除・強制プッシュ・リポジトリ外を触る前だけ」。ただしこの環境は「変更前に説明し承認を得る」ルールがあるので、<strong>どちらを優先するかを専務が決めてから</strong>入れる。（元記事：0929-B3）</li>
+<li class="item"><span class="num">4.</span><span class="tag p2">P2</span> <strong>依頼の型を「全体＋完了の定義＋止まる条件」にそろえる</strong>：例「来月分の運賃計算を回して。完了＝請求書と金額が一致し、Excelが検査を通ること。説明できない差が出たら止まって聞いて」。既存の「作業完了の定義」ルールと同じ方向なので、依頼時の書き方として使うだけでよい。（元記事：0929-A6, B3）</li>
+</ul>
+<h3>📚 学習</h3>
+<ul class="items">
+<li class="item"><span class="num">5.</span><span class="tag p2">P2</span> <strong>公式「Prompting Claude Opus 5.5」ガイド</strong>：何を削り、何を足すべきか（effort の合わせ方、長い作業のチェックリスト、貼り付け文の印付け、時間予算の渡し方など）の一次情報。platform.claude.com の prompt-engineering 配下。（元記事：0929-A3, A4）</li>
+<li class="item"><span class="num">6.</span><span class="tag p2">P2</span> <strong>公式プレイブック「Getting the most out of Opus 5.5」</strong>：「任せ方・長い作業の舵取り・結果の確かめ方」の3点。9分で読める。（元記事：0929-A6）</li>
+</ul>
+<h2>② effort・モデル・コストの管理【6件】</h2>
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+<li class="item"><span class="num">7.</span><span class="tag p1">P1</span> <strong>settings.json の <code>&quot;effortLevel&quot;: &quot;high&quot;</code> を見直す</strong>：Opus 5.5 は既定が medium。Opus 5 時代の high を持ち越すと「要らない深さで考えて、出力（いちばん高い部分）が増える」と複数の記事が指摘。案は「既定は medium、難しい作業のときだけ上げる」。<strong>注意</strong>：会話の途中で全体の effort を変えるとキャッシュ（読み直しを安くする仕組み）が効かなくなるので、変えるのは会話の最初か区切り（/clear の後）で。settings.json は両OS共通なので、変えるなら dotfiles 側で1回。（元記事：0929-B1, B3）</li>
+<li class="item"><span class="num">8.</span><span class="tag p1">P1</span> <strong><code>/skill-doctor</code> と <code>/mcp</code> で「待機中の重さ」を測る</strong>：<code>/skill-doctor</code> は読み込まれているスキルごとの消費量と未使用スキルを出す（Claude Code 公式の機能として存在を確認済み。ただし元記事の「7割削減」は誇大表現）。この環境はMCP（外部サービスとつなぐ仕組み）が多い（playwright・jina・discord・Google Drive・basic-memory・context7 など）。公式ワークショップの「今日使わないMCPは /mcp で切る。待機中でもタダではない」をそのまま適用できる。（元記事：0908a-B1, 0920-C1）</li>
+<li class="item"><span class="num">9.</span><span class="tag p1">P1</span> <strong><code>/usage</code> の数字を公式の計算ツールに入れて、自分の1作業あたりの費用を知る</strong>：公式ブログ「What a task costs on Opus 5.5」に計算ツールがある。キャッシュの当たり率が費用を最も大きく動かす（90%と96%で入力費が約1.6倍違う）。（元記事：0929-B2, B4）</li>
+<li class="item"><span class="num">10.</span><span class="tag p2">P2</span> <strong>サブエージェントにモデルを割り振る</strong>：いまの4エージェント（doc-verifier・equipment-history・my-info-extractor・seo-researcher）は、会話本体のモデルをそのまま使う。調べもの・抜き出し系（my-info-extractor・equipment-history）は安いモデルに下げ、判断が要る所だけ上位に残すと費用が下がる。エージェント定義の frontmatter（ファイル先頭の設定欄）に model を書けるかは公式ドキュメントで確認してから。（元記事：0902-A1, 0920-C1, 0908a-A1 の12項）</li>
+<li class="item"><span class="num">11.</span><span class="tag p2">P2</span> <strong>「作るのは低 effort、確かめるのは高 effort」の2段構え</strong>：Claude Code チームの実測では、effort を上げて増えるのは主に「検証とエッジケース（めったに起きない条件）のテスト」。同じ設計タスクで low 1分・max 28分。新しい用途の例：月次の Excel 集計スクリプトを作る時、作成は low で速く回し、完成品の突き合わせだけ high の別エージェントにやらせる。（元記事：0929-B1）</li>
+</ul>
+<h3>📚 学習</h3>
+<ul class="items">
+<li class="item"><span class="num">12.</span><span class="tag p2">P2</span> <strong>公式トークン削減ワークショップ（26分）の要点</strong>：作業の切れ目で /clear（長い会話で3つの作業を続けると約2倍かかる）、用途でモデルを分ける、重い調べ物はサブエージェントへ（読んだ中身は捨てられ報告だけ戻る）。（元記事：0920-C1）</li>
+<li class="item"><span class="num">13.</span><span class="tag p3">P3</span> <strong>Graft（コードの構造と依存関係の地図を先に渡す手法）</strong>：「トークン42%減・正解率54→66%」は一次ソース未確認。考え方（最初に地図を渡せば探し回らない）だけ押さえる。mino-sakura-hq のように大きくなったリポジトリでは、CLAUDE.md の「どこに何があるか」節がその役を果たす。（元記事：0910-B1）</li>
+</ul>
+<h2>③ 並列化・ワークフロー設計（Projects／dynamic workflow）【9件】</h2>
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+<li class="item"><span class="num">14.</span><span class="tag p2">P2</span> <strong>Claude Code の Projects を試す</strong>：1つの会話に頼みごとを書くと、Claudeが仕事を分けて並列のスレッド（それぞれ独立したClaude Codeセッション）で進め、「作業中／あなた待ち／完了」で並べて見せる。PCを閉じても進み、スマホから指示もできる。9/23 にローカル（自分のPC上）実行にも対応。デスクトップ版・ウェブ版のみ・一部ユーザーにベータ提供なので、<strong>まず自分のアカウントで使えるか確認</strong>。新しい用途の例：「来期の設備更新の検討材料をそろえて」と頼み、メーカー資料集め・過去の不具合履歴の整理・費用比較表づくりを3スレッドで同時に進めさせる。（元記事：0920-A1〜A4, 0929-D3）</li>
+<li class="item"><span class="num">15.</span><span class="tag p2">P2</span> <strong>「workflow」と書いて並列処理を組ませる（dynamic workflow）</strong>：プロンプトに workflow と書くと、Claudeが並列処理の段取り（JavaScriptの台本）を書いて、複数のサブエージェントを同時に動かす。台本部分はトークンを使わない。うまくいった台本は s キーで <code>.claude/workflows/</code> に保存して名前で再実行できる。新しい用途の例：「全リポジトリの settings.json と CLAUDE.md を1ファイル1エージェントで点検し、指摘は別のエージェントで裏取りしてから一覧にする workflow を走らせて」。仕様は記事ベースなので、<strong>実装前に doc-verifier で公式確認</strong>。（元記事：0908a-A1, 0910-A1）</li>
+<li class="item"><span class="num">16.</span><span class="tag p2">P2</span> <strong>サブエージェントの報告は「証拠を確かめてから受け取る」</strong>：公式ガイド由来の1文「報告が返ってきたら、受け入れる前に証拠を確認して」。これが無いと親エージェントは子の言い分を鵜呑みにする。equipment-history（過去の不具合探し）を複数並べて使うときに、そのまま効く。（元記事：0929-B3）</li>
+<li class="item"><span class="num">17.</span><span class="tag p2">P2</span> <strong>長い作業はチェックリストをファイルに置く</strong>：会話が長くなると古いやり取りは圧縮されて消えるが、ファイルは残る。この環境には planning-with-files スキル（task_plan.md を作る）が既にあるので、<strong>新しく作らず、長い作業で実際に呼ぶ習慣をつける</strong>。（元記事：0929-A4, B3）</li>
+</ul>
+<h3>📚 学習</h3>
+<ul class="items">
+<li class="item"><span class="num">18.</span><span class="tag p2">P2</span> <strong>グラフ設計14ステップ（Graph Engineering with Claude）</strong>：仕事を「箱（作業）と矢印（データの受け渡し）」で描き、データが流れない「そして」は切って並列にする。要点は、並列に広げる→コードでまとめる→最後に1体で書く（ダイヤモンド型）、検証役を途中に置く、終わる条件のあるループ、安い作業は安いモデルへ。（元記事：0908a-A1）</li>
+<li class="item"><span class="num">19.</span><span class="tag p3">P3</span> <strong>Boris（Claude Code の作者）の6つの部品</strong>：プランモードから入る／10〜15並列／同じ指摘3〜4回でルール化／検索は単純に（grep・glob）／/loop で見張りを任せる／譲れない所だけ自分で。「ルール化」はこの環境では既に強く実践中。逆に、<strong>増えたルールを定期的に削る</strong>側（Tip 4「容赦なく編集し、要らなくなったルールは消す」）が今の課題。（元記事：0910-A1, 0920-A3 引用）</li>
+<li class="item"><span class="num">20.</span><span class="tag p3">P3</span> <strong>Anthropic エンジニアのワークショップ動画（1時間コース・30分版）</strong>：CLAUDE.md とプラン→スキル→チーム設計→Agents SDK の順。100以上のエージェントをループで回し、Chief（統括）エージェントが管理する構成の話も。（元記事：0908a-A1, 0929-C1, 0929-B3 引用）</li>
+</ul>
+<h2>④ Claude 本体の新機能・公式ツール【7件】</h2>
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+<li class="item"><span class="num">21.</span><span class="tag p2">P2</span> <strong>Claude Docs を共有用の資料に使う</strong>：Cowork 統合で追加された、会話の文脈から作られる共有・コメント・共同編集できる文書。<strong>このセッションでも Claude Docs が使える状態になっている</strong>。いまのローカルHTML（8830番）は自分のPCでしか開けないので、社内の人に回したい資料（例：経営会議向けの月次まとめ）だけ Docs に出す、という使い分けができる。（元記事：0920-B1）</li>
+<li class="item"><span class="num">22.</span><span class="tag p2">P2</span> <strong>Claude Slides／Google Slides 直接編集</strong>：会話から資料を作り、「色を変えて」で全ページ一括修正。新しい用途の例：月次の生産実績を報告用の5枚に。数字の元は既存のExcelルールに従い、Slidesは見せ方だけ担当させる。（元記事：0920-B2, 0929-D2）</li>
+<li class="item"><span class="num">23.</span><span class="tag p2">P2</span> <strong>公式スキル集 anthropics/skills の frontend-design を入れる</strong>：AIっぽい見た目（クリーム色の背景・全部同じ角丸カード等）を避け、先に配色・フォント・レイアウトを決めてから作るスキル。レポートHTMLの見た目を整えたいときに。公式ガイドの補足：「AIっぽくしないで」と書くより「クリーム背景なし・斜体の強調なし・01/02/03の見出し番号なし」と<strong>具体的に禁止</strong>した方が効く。skill-creator は既に入っている。（元記事：0929-D1, 0929-B3）</li>
+</ul>
+<h3>📚 学習</h3>
+<ul class="items">
+<li class="item"><span class="num">24.</span><span class="tag p3">P3</span> <strong>「claude.ai を2週間で3倍速くした」公式ブログ</strong>：「測れるものはClaudeが速くできる」。まず計測の仕組みを作り、数字を見ながら改善を繰り返す（hill climb＝少しずつ良い方へ登る）進め方。遅いと感じている定型処理（例：週次収集）の所要時間を記録するところから応用できる。（元記事：0929-D4）</li>
+</ul>
+<h3>📡 情報収集</h3>
+<ul class="items">
+<li class="item"><span class="num">25.</span><span class="tag p3">P3</span> <strong>Claude Commerce Agents（オープンソース）</strong>：買い物・販売のエージェントの参照実装。いまの業務に直結はしないが、受発注の自動化を考える時の見本になる。（元記事：0902-B1）</li>
+<li class="item"><span class="num">26.</span><span class="tag p3">P3</span> <strong>0901 の @ClaudeDevs 公式ポスト</strong>：本文が取れておらず中身不明。元URLを一度開いて確認する。（元記事：0901-A1）</li>
+</ul>
+<h2>⑤ 仕事の任せ方・使い方の発想【5件】</h2>
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+<li class="item"><span class="num">27.</span><span class="tag p2">P2</span> <strong>打ち合わせ前夜の「準備メモ」をAIに作らせる（DeNA南場社長の方式）</strong>：型は「目的／確認済みの事実（出典つき）／前回からの持ち越し／当日聞く質問5つまで／資料から分からないこと」。相手の性格や本音は推測させない、メール送信や予定変更はさせない、という縛りが要。新しい用途の例：取引先・運送会社との打ち合わせ前に、過去のメールと議事録を貼って1枚にまとめる。（元記事：0929-C4）</li>
+<li class="item"><span class="num">28.</span><span class="tag p2">P2</span> <strong>会議のあと「誰が・何を・いつまでに」を整理させる</strong>：「来週までに確認しましょう」のような曖昧な言葉を、担当・期限つきに直させる。決まっていないことは「検討中」として残し、AIに空欄を埋めさせない。（元記事：0929-C4）</li>
+<li class="item"><span class="num">29.</span><span class="tag p2">P2</span> <strong>AIが何度も使う「小さな道具」を作る</strong>：何でもできるAIではなく、複数のエージェントが呼び出す小さな機能を1つ作る発想。新しい用途の例：「得意先コードを渡すと直近12か月の売上を返す」小さなスクリプトを作り、分析・資料づくり・異常検知の各作業から共通で呼ぶ。（元記事：0920-D2）</li>
+</ul>
+<h3>📡 情報収集</h3>
+<ul class="items">
+<li class="item"><span class="num">30.</span><span class="tag p3">P3</span> <strong>Obsidian CEO（Steph Ango）のナレッジ管理スキル5個</strong>：この環境は basic-memory（Obsidian形式のメモ）を既に使っているので、ノートの書き方・整理の型を比べる材料になる。導入は公式リポジトリを確認してから。（元記事：0920-D1）</li>
+<li class="item"><span class="num">31.</span><span class="tag p3">P3</span> <strong>Opus 5.5 のコンピューター操作（PC画面の操作代行）</strong>：Opus 5.5 は画面や表の読み取りが大きく向上。10のプロンプト集は本文未取得なので、使いたい場面が出たら元記事を見る。（元記事：0929-C2, C3）</li>
+</ul>
+<h2>⑥ 注意・未検証の情報【2件＋横断】</h2>
+<h3>📚 学習</h3>
+<ul class="items">
+<li class="item"><span class="num">32.</span><span class="tag p3">P3</span> <strong>「新しいClaudeは一文ごとに見えない透かしを埋め込む」という主張</strong>：出典未確認の伝聞。<strong>これを前提に行動しない</strong>。気になるなら doc-verifier で公式発表の有無を確認する。ただし「AIに渡した社内情報の扱いに注意」という一般論は正しい。（元記事：0902-C1）</li>
+<li class="item"><span class="num">33.</span><span class="tag p3">P3</span> <strong>@claudecode84 の数字は割り引いて読む</strong>：「7割削減」「20万円損」「42%節約」などの数字は特典配布への誘導つき。機能名（/skill-doctor・prompt-audit）は手がかりとして有用だが、効果の数字は自分で測る。（元記事：0908a-B1, 0910-B1, 0920-D2, 0929-A1）</li>
+</ul>
+<h3>📡 情報収集</h3>
+<ul class="items">
+<li class="item"><span class="num">34.</span><span class="tag p3">P3</span> <strong>@ClaudeDevs と claude.dev/blog（Addy Osmani のプレイブック）</strong>：今月の有用情報はほぼここが一次ソース。記事の数字もここで裏取りできる。</li>
+<li class="item"><span class="num">35.</span><span class="tag p3">P3</span> <strong>@ClaudeCode_UT</strong>：手元で実測した結果（何分・何件）を添えて書く数少ない日本語アカウント。</li>
+</ul>
+<h2>✅ 実施済み（参考）</h2>
+<ul class="items">
+<li class="item">「公式ドキュメントで確認してから実装」ルール → CLAUDE.md に記載済み（記事の多くが勧める「裏取り」）</li>
+<li class="item">同じ指摘を繰り返したらルール化 → past_mistakes・フック（html-gate 等）で実践中（Boris の③）</li>
+<li class="item">サブエージェントの活用 → doc-verifier・equipment-history など4本を運用中</li>
+<li class="item">長い作業のチェックリスト → planning-with-files スキル導入済み（17番は「使う習慣」の話）</li>
+<li class="item">skill-creator → 導入済み</li>
+<li class="item">危険な操作の deny 設定 → 2026-03-29 に設定済み</li>
+</ul>
+<h2>今週のピックアップ3選</h2>
+<ul class="items">
+<li class="item"><span class="num">1.</span><strong><code>/doctor prompt-audit</code> で指示書を監査</strong>（本文1番）— 今週の最大テーマで、この環境のCLAUDE.mdは長く継ぎ足してきたぶん効果が最も大きい。点検だけで書き換えないので失うものがない。</li>
+<li class="item"><span class="num">2.</span><strong>settings.json の effort を high から見直す</strong>（本文7番）— 1行の変更で、毎回の出力費に効く。バグ対策の行（2番）とセットで判断する。</li>
+<li class="item"><span class="num">3.</span><strong><code>/skill-doctor</code> と <code>/mcp</code> で待機中の重さを測る</strong>（本文8番）— MCPとスキルが多いこの環境では、使っていない物が毎回の読み込みを食っている可能性が高い。測ってから切るので安全。</li>
+</ul>
+<footer>Xブックマーク週次分析 ／ x-bookmark-analyze</footer>
+</div>
+</body>
+</html>
