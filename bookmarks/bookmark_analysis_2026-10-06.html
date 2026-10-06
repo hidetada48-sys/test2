@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ブックマーク分析レポート 2026-10-06</title>
+<style>
+  :root{--p1:#e6462e;--p2:#e08a1e;--p3:#3a7bd5;--bg:#f7f7f5;--card:#fff;--ink:#2b2b2b;--muted:#777;--line:#e5e2dc;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);line-height:1.75;
+    font-family:system-ui,-apple-system,"Segoe UI","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;}
+  .wrap{max-width:860px;margin:0 auto;padding:32px 20px 80px;}
+  h1{font-size:1.6rem;margin:0 0 6px;border-bottom:3px solid var(--ink);padding-bottom:14px;}
+  h2{font-size:1.2rem;margin:34px 0 12px;padding-left:12px;border-left:5px solid var(--ink);}
+  h3{font-size:1rem;margin:20px 0 8px;color:#444;}
+  .meta{color:var(--muted);font-size:.9rem;}
+  .lead{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:14px 0;}
+  ul.items{padding-left:0;list-style:none;margin:0;}
+  li.item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0;}
+  .num{font-weight:700;color:var(--muted);margin-right:6px;}
+  .tag{display:inline-block;color:#fff;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:999px;margin-right:8px;}
+  .p1{background:var(--p1);} .p2{background:var(--p2);} .p3{background:var(--p3);}
+  a{color:var(--p3);}
+  code{background:#eee;padding:1px 5px;border-radius:4px;font-size:.9em;}
+  footer{margin-top:40px;color:var(--muted);font-size:.82rem;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>ブックマーク分析レポート</h1>
+<div class="meta"><strong>作成日：2026-10-06</strong></div>
+<div class="meta"><strong>元データ：bookmarks_0928-1005.md（9件。うち本文を読めたもの6件）</strong></div>
+<p class="lead">今週の中心は、9月下旬に公開された新しいモデル（Sonnet 5.5・Opus 5.5）の使い分けと、費用を抑えるための設定の見直しです。あわせて、Claude Code 本体の新しい拡張機能（公式プラグイン「You should know」、改造の仕組み「Mods」）と、Skills（決まった仕事の手順書）を絞り込む考え方が取り上げられていました。</p>
+<p class="lead">現在の環境の状況（照合の結果）：</p>
+<ul class="items">
+<li class="item">Claude Code は 2.1.291（Sonnet 5.5 に対応する 2.1.284 以降）</li>
+<li class="item">補助役のエージェント4つ（公式の照合・設備の履歴調べ・会話ログの抜き出し・記事の調査）は、すべて Sonnet を使う指定。つまり現在は自動で Sonnet 5.5 で動いています</li>
+<li class="item">考える量（effort）の設定は、Opus 5.5 が「中」、旧 Opus 5 が「高」</li>
+<li class="item">自作の Skills は16個、ほかにプラグイン由来のものが多数あります</li>
+</ul>
+<h2>1. 新しいモデルの使い分け（Sonnet 5.5／Opus 5.5／Fable 5.1）</h2>
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+<li class="item"><span class="num">1.</span><span class="tag p1">P1</span> <strong>公式ガイドに沿って、モデルと考える量の設定を点検させる</strong>：記事にある点検用の依頼文（「まず推奨だけ表示し、何も変更しない」で終わるもの）をそのまま Claude Code に渡すと、モデル指定のないエージェント、Sonnet 向けに固定された考える量、古いモデル向けの指示（「考えすぎるな」「怠けるな」等）を一覧で出してくれます。この環境では、補助役4つが Sonnet 5.5 で動いていること、旧 Opus 5 用の設定が残っていることが点検対象になります。変更は一覧を見てから決められます。（元記事：A-2）</li>
+<li class="item"><span class="num">2.</span><span class="tag p2">P2</span> <strong>補助役エージェントの考える量を仕事の重さで分ける</strong>：Sonnet 5.5 では考える量の段階が作り直されたため、旧来の設定をそのまま引き継がない方がよいとされています。目安は「範囲が決まった調べ物＝中」「難しい・長い作業＝高」「最高段階は効果を測ったときだけ」。例として、設備の履歴調べ（件数を数えるだけ）は「中」、公式ドキュメントとの照合（誤りを見つける）は「高」に分けると、費用と精度の釣り合いが取れます。（元記事：A-2）</li>
+<li class="item"><span class="num">3.</span><span class="tag p2">P2</span> <strong>「計画は Opus、実際の作業は Sonnet」の自動切り替えを試す</strong>：<code>/model opusplan</code> を選ぶと、計画を立てる段階は Opus 5.5、書く段階は Sonnet 5.5 に自動で分かれます。例えば、新しい集計表を作るとき「どういう表にするか」は Opus、「表を組み立てて数式を入れる」は Sonnet、と1つの設定で分担できます。ただし Opus 単独の方が安かった報告もあるため、同じ作業で費用を比べてから続けるか決めるのが確実です。（元記事：A-2 引用記事）</li>
+<li class="item"><span class="num">4.</span><span class="tag p2">P2</span> <strong>相談役として Fable 5.1 を付ける</strong>：<code>/advisor fable</code> を実行すると、作業は Opus 5.5 が続け、Fable 5.1 が「計画の前」「同じ誤りが繰り返したとき」「完了と言う前」の3回だけ口を挟みます。数字の集計のように、誤りを見落とすと後で手戻りが大きい仕事で効果が出やすい使い方です。記事は CLAUDE.md への規則追加や設定の書き換えまで勧めていますが、まずは1回の作業で試し、効果を確かめてから設定に残すのが安全です。（元記事：A-3）</li>
+</ul>
+<h3>📚 学習</h3>
+<ul class="items">
+<li class="item"><span class="num">5.</span><span class="tag p2">P2</span> <strong>Sonnet 5.5 の癖と抑え方</strong>：「頼んでいない物を作り始める」「調べずに記憶で答える」「低い設定だとテストを実行せずに完了と言う」などの癖と、それぞれを抑える一言（「案を出したらそこで止めて」「変わりやすい情報は検索で確かめて」「テストを実行して結果を見せて」）が学べます。表計算は「数式で組んで」と頼み、入力を1つ変えて結果が連動するか確かめる、という確認方法も実務に直結します。（元記事：A-2 引用記事）</li>
+<li class="item"><span class="num">6.</span><span class="tag p3">P3</span> <strong>「はい／いいえ」の判断に高いモデルを使わない考え方</strong>：文章を作る仕事は大きなモデル、選ぶ・判定するだけの仕事は判定専用の安いモデル、計算や件数の確認は普通のプログラム、と3つに分ける設計が学べます。「プログラムで正しく判定できることは、モデルに聞かない」という原則は、集計や照合の仕組みを作るときにそのまま使えます。（元記事：A-3 引用記事）</li>
+</ul>
+<h3>📡 情報収集</h3>
+<ul class="items">
+<li class="item"><span class="num">7.</span><span class="tag p3">P3</span> <strong>Haiku 5.5 の公開</strong>：数週間以内に公開予定とされています。件数の多い単純な仕分けを安く回せる可能性があるため、公開時に料金と性能を確認する価値があります。（元記事：A-2 引用記事）</li>
+<li class="item"><span class="num">8.</span><span class="tag p3">P3</span> <strong>判定専用モデル「Jev」（TypeSafe 社）</strong>：9月15日に公開。性能の数字は開発元の自己評価が中心で、第三者の検証はまだありません。実際の利用報告が出そろうまで様子を見ます。（元記事：A-3 引用記事）</li>
+</ul>
+<h2>2. Claude Code 本体の新しい拡張機能</h2>
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+<li class="item"><span class="num">9.</span><span class="tag p1">P1</span> <strong>公式プラグイン「You should know」を有効にする</strong>：<code>/plugin enable cc-plugin-you-should-know@builtin</code> の1行で有効になります。別のエージェントが作業報告を横で読み、「再試行を足したが二重請求の恐れがある」程度の重大な落とし穴だけを知らせ、「了解・会話で相談・閉じる」の3択でその場で返せます。長い作業報告を最後まで読まなくても、危ない1行を見落としにくくなります。例として、取引先別の売上集計を作り直させたとき「金額0以下の行を除外した結果、返品分が消えている」といった注意だけを先に受け取れる、という使い方が想定できます。（元記事：B-1）</li>
+<li class="item"><span class="num">10.</span><span class="tag p2">P2</span> <strong>「Mods」で画面や動き方を自分向けに変える</strong>：Claude Code の見た目や動き方を自分で書き換えられる仕組みです。この環境では、作業中の画面の端に「今日の未完了の定例業務の件数」を常に表示する、といった使い方が考えられます。投稿は概要のみのため、作る前に公式ドキュメントで手順を確認します。（元記事：B-2）</li>
+</ul>
+<h2>3. Skills（決まった仕事の手順書）の絞り込み</h2>
+<h3>🛠 環境改善・向上</h3>
+<ul class="items">
+<li class="item"><span class="num">11.</span><span class="tag p2">P2</span> <strong>Skills の棚卸し</strong>：記事は「入れすぎると呼ばれ方がずれる。8個を超えると誤って呼ばれることが増えた」としています。この環境は自作16個に加え、同じ名前の Skills が2系統ある物（問題集の作成・模擬テスト・答えの検証・Skills作成が、自作版とプラグイン版で重複）があります。重複している4組のうち使っていない方を外すと、呼び間違いが減る見込みです。（元記事：C-1）</li>
+<li class="item"><span class="num">12.</span><span class="tag p2">P2</span> <strong>Skills の説明文の書き方を見直す</strong>：自動で呼ばれるかは説明文で決まります。「大事な言葉を先頭に置く」「日本語の言葉を前に書く」「長すぎない」が要点です。この環境の説明文は長めの物が多いため、呼ばれにくい Skills があれば、説明文の先頭を「どんなときに使うか」の日本語にそろえます。（元記事：C-1）</li>
+</ul>
+<h3>📚 学習</h3>
+<ul class="items">
+<li class="item"><span class="num">13.</span><span class="tag p3">P3</span> <strong>Skills は「3つの仕事の分野 × 3〜4個」に絞る考え方</strong>：書類作成・調べ物・自動化のように分野を分け、2週間使っていない物は外す、という整理の仕方が学べます。8個という数字は投稿者の経験値であり、公式の基準ではない点に注意が必要です。（元記事：C-1）</li>
+</ul>
+<h2>4. 本文を読めなかった投稿（3件）</h2>
+<ul class="items">
+<li class="item"><span class="num">14.</span><span class="tag p3">P3</span> <strong>画像・動画のみの投稿3件</strong>：本文が取れなかったため分析していません。必要であれば、元の投稿（@L_go_mrk、@wad0427、@koumei_ai5566）を直接ご確認ください。（元記事：D-1〜D-3）</li>
+</ul>
+<h2>✅ 実施済み（参考）</h2>
+<ul class="items">
+<li class="item">補助役エージェント4つはすでに Sonnet 指定のため、何もしなくても Sonnet 5.5 で動いています（1・2番の前提）</li>
+<li class="item">Opus 5.5 の考える量は「中」に設定済みです</li>
+<li class="item">Skills の作成・改善用の仕組み（skill-creator）は導入済みです（記事 C-1 で推奨されている物）</li>
+<li class="item">書類（docx）・表計算（xlsx）・スライド（pptx）・PDF の Skills はプラグインで導入済みです（記事 C-1 の「まず入れる3つ」）</li>
+</ul>
+<h2>今週のピックアップ3選</h2>
+<ul class="items">
+<li class="item"><span class="num">1.</span><strong>公式プラグイン「You should know」を有効にする</strong>（本文9番）— 1行で入り、長い作業の報告の中の重大な落とし穴だけを先に知らせてくれるため、効果に対して手間が最も小さい</li>
+<li class="item"><span class="num">2.</span><strong>公式ガイドに沿ってモデルと考える量の設定を点検させる</strong>（本文1番）— 変更はせず一覧を出すだけなので安全で、旧モデル用の設定が残っている状態を整理できる</li>
+<li class="item"><span class="num">3.</span><strong>Skills の重複4組を整理する</strong>（本文11番）— 同じ名前の手順書が2系統あると呼び間違いの原因になるため、使っていない方を外す</li>
+</ul>
+<footer>Xブックマーク週次分析 ／ x-bookmark-analyze</footer>
+</div>
+</body>
+</html>
